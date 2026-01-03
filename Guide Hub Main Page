@@ -1,0 +1,718 @@
+<style>
+  .class-hub-wrapper {
+    background: {{ section.settings.background_color }};
+    min-height: 100vh;
+    padding-bottom: 80px;
+  }
+
+  .class-hub-hero {
+    background: linear-gradient(135deg, {{ section.settings.accent_color }}15 0%, transparent 50%),
+                linear-gradient(180deg, #0d0d0d 0%, {{ section.settings.background_color }} 100%);
+    padding: 80px 20px 60px;
+    text-align: center;
+    border-bottom: 1px solid {{ section.settings.accent_color }}33;
+  }
+
+  .class-hub-hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .class-hub-title {
+    font-size: clamp(2.5rem, 5vw, 3.5rem);
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 16px;
+    text-shadow: 0 0 40px {{ section.settings.accent_color }}4D;
+  }
+
+  .class-hub-subtitle {
+    font-size: 1.125rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  .class-hub-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 60px 20px;
+  }
+
+  .class-hub-section {
+    margin-bottom: 60px;
+  }
+
+  .class-hub-section:last-child {
+    margin-bottom: 0;
+  }
+
+  .section-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .section-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-title svg {
+    color: {{ section.settings.accent_color }};
+  }
+
+  .section-description {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0;
+  }
+
+  .class-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+  }
+
+  .class-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 20px;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    overflow: hidden;
+  }
+
+  .class-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--class-color);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .class-card:hover {
+    transform: translateY(-6px);
+    border-color: var(--class-color);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4),
+                0 0 30px color-mix(in srgb, var(--class-color) 30%, transparent);
+  }
+
+  .class-card:hover::before {
+    opacity: 1;
+  }
+
+  .class-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin-bottom: 16px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    object-fit: cover;
+  }
+
+  .class-card:hover .class-icon {
+    border-color: var(--class-color);
+    box-shadow: 0 0 20px color-mix(in srgb, var(--class-color) 50%, transparent);
+  }
+
+  .class-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 6px;
+    transition: color 0.3s ease;
+  }
+
+  .class-card:hover .class-name {
+    color: var(--class-color);
+  }
+
+  .class-count {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  /* WoW Class Colors */
+  .class-card.warrior { --class-color: #C79C6E; }
+  .class-card.paladin { --class-color: #F58CBA; }
+  .class-card.hunter { --class-color: #ABD473; }
+  .class-card.rogue { --class-color: #FFF569; }
+  .class-card.priest { --class-color: #FFFFFF; }
+  .class-card.shaman { --class-color: #0070DE; }
+  .class-card.mage { --class-color: #69CCF0; }
+  .class-card.warlock { --class-color: #9482C9; }
+  .class-card.druid { --class-color: #FF7D0A; }
+
+  /* Category Cards */
+  .category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+  }
+
+  .category-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 28px;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+
+  .category-card:hover {
+    transform: translateY(-4px);
+    border-color: {{ section.settings.accent_color }}66;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4),
+                0 0 30px {{ section.settings.accent_color }}1A;
+  }
+
+  .category-icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: {{ section.settings.accent_color }}1A;
+    border: 1px solid {{ section.settings.accent_color }}33;
+    border-radius: 14px;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+  }
+
+  .category-icon svg {
+    width: 28px;
+    height: 28px;
+    color: {{ section.settings.accent_color }};
+  }
+
+  .category-card:hover .category-icon {
+    background: {{ section.settings.accent_color }}33;
+    border-color: {{ section.settings.accent_color }};
+  }
+
+  .category-info {
+    flex: 1;
+  }
+
+  .category-name {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 4px;
+    transition: color 0.3s ease;
+  }
+
+  .category-card:hover .category-name {
+    color: {{ section.settings.accent_color }};
+  }
+
+  .category-description {
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1.4;
+  }
+
+  .category-arrow {
+    color: rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+  }
+
+  .category-card:hover .category-arrow {
+    color: {{ section.settings.accent_color }};
+    transform: translateX(4px);
+  }
+
+  /* Bracket Cards */
+  .bracket-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+  }
+
+  .bracket-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 28px 20px;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+
+  .bracket-card:hover {
+    transform: translateY(-4px);
+    border-color: {{ section.settings.accent_color }}66;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4),
+                0 0 30px {{ section.settings.accent_color }}1A;
+  }
+
+  .bracket-icon {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+  }
+
+  .bracket-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 4px;
+    transition: color 0.3s ease;
+  }
+
+  .bracket-card:hover .bracket-name {
+    color: {{ section.settings.accent_color }};
+  }
+
+  .bracket-description {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.5);
+    text-align: center;
+  }
+
+  /* CTA Section */
+  .hub-cta {
+    margin-top: 60px;
+    padding: 48px;
+    background: linear-gradient(135deg, {{ section.settings.accent_color }}1A 0%, {{ section.settings.accent_color }}08 100%);
+    border: 1px solid {{ section.settings.accent_color }}33;
+    border-radius: 20px;
+    text-align: center;
+  }
+
+  .hub-cta-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 12px;
+  }
+
+  .hub-cta-text {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0 0 24px;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .hub-cta-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, {{ section.settings.accent_color }} 0%, {{ section.settings.accent_color }}CC 100%);
+    color: #000;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px {{ section.settings.accent_color }}4D;
+  }
+
+  .hub-cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px {{ section.settings.accent_color }}66;
+  }
+
+  @media (max-width: 768px) {
+    .class-hub-hero {
+      padding: 60px 20px 40px;
+    }
+
+    .class-hub-container {
+      padding: 40px 16px;
+    }
+
+    .class-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .class-card {
+      padding: 20px 12px;
+    }
+
+    .class-icon {
+      width: 56px;
+      height: 56px;
+    }
+
+    .class-name {
+      font-size: 0.9rem;
+    }
+
+    .class-count {
+      display: none;
+    }
+
+    .category-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .bracket-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .hub-cta {
+      padding: 32px 20px;
+    }
+  }
+</style>
+
+<div class="class-hub-wrapper">
+  <div class="class-hub-hero">
+    <div class="class-hub-hero-content">
+      <h1 class="class-hub-title">{{ section.settings.title }}</h1>
+      {% if section.settings.subtitle != blank %}
+        <p class="class-hub-subtitle">{{ section.settings.subtitle }}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="class-hub-container">
+    
+    {% if section.settings.show_classes %}
+    <div class="class-hub-section">
+      <div class="section-header">
+        <h2 class="section-title">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+          Class Guides
+        </h2>
+        <p class="section-description">Master your class with in-depth strategies and tips</p>
+      </div>
+      
+      <div class="class-grid">
+        <a href="{{ section.settings.blog_url }}/tagged/warrior" class="class-card warrior">
+          <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/war.png?v=1766427831" alt="Warrior" class="class-icon">
+          <span class="class-name">Warrior</span>
+          <span class="class-count">View Guides</span>
+        </a>
+        
+        <a href="{{ section.settings.blog_url }}/tagged/paladin" class="class-card paladin">
+          <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/pala.png?v=1766427831" alt="Paladin" class="class-icon">
+          <span class="class-name">Paladin</span>
+          <span class="class-count">View Guides</span>
+        </a>
+        
+        <a href="{{ section.settings.blog_url }}/tagged/hunter" class="class-card hunter">
+          <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/hunter.png?v=1766427832" alt="Hunter" class="class-icon">
+          <span class="class-name">Hunter</span>
+          <span class="class-count">View Guides</span>
+        </a>
+        
+        <a href="{{ section.settings.blog_url }}/tagged/rogue" class="class-card rogue">
+          <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/rogue.png?v=1766427831" alt="Rogue" class="class-icon">
+          <span class="class-name">Rogue</span>
+          <span class="class-count">View Guides</span>
+        </a>
+        
+        <a href="{{ section.settings.blog_url }}/tagged/priest" class="class-card priest">
+          <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/priest.png?v=1766427831" alt="Priest" class="class-icon">
+          <span class="class-name">Priest</span>
+          <span class="class-count">View Guides</span>
+        </a>
+        
+        <a href="{{ section.settings.blog_url }}/tagged/shaman" class="class-card shaman">
+          <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/shaman.png?v=1766427831" alt="Shaman" class="class-icon">
+          <span class="class-name">Shaman</span>
+          <span class="class-count">View Guides</span>
+        </a>
+        
+        <a href="{{ section.settings.blog_url }}/tagged/mage" class="class-card mage">
+          <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/mage.png?v=1766427831" alt="Mage" class="class-icon">
+          <span class="class-name">Mage</span>
+          <span class="class-count">View Guides</span>
+        </a>
+        
+        <a href="{{ section.settings.blog_url }}/tagged/warlock" class="class-card warlock">
+          <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/warlock.png?v=1766427831" alt="Warlock" class="class-icon">
+          <span class="class-name">Warlock</span>
+          <span class="class-count">View Guides</span>
+        </a>
+        
+        <a href="{{ section.settings.blog_url }}/tagged/druid" class="class-card druid">
+          <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/druid.png?v=1766427831" alt="Druid" class="class-icon">
+          <span class="class-name">Druid</span>
+          <span class="class-count">View Guides</span>
+        </a>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if section.settings.show_categories %}
+    <div class="class-hub-section">
+      <div class="section-header">
+        <h2 class="section-title">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+          Guide Categories
+        </h2>
+        <p class="section-description">Browse guides by topic</p>
+      </div>
+      
+      <div class="category-grid">
+        <a href="{{ section.settings.blog_url }}/tagged/general-arena" class="category-card">
+          <div class="category-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+              <line x1="9" y1="9" x2="9.01" y2="9"></line>
+              <line x1="15" y1="9" x2="15.01" y2="9"></line>
+            </svg>
+          </div>
+          <div class="category-info">
+            <div class="category-name">General Arena</div>
+            <div class="category-description">Positioning, awareness, and fundamentals</div>
+          </div>
+          <svg class="category-arrow" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </a>
+        
+        <a href="{{ section.settings.blog_url }}/tagged/comp-guides" class="category-card">
+          <div class="category-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+          </div>
+          <div class="category-info">
+            <div class="category-name">Comp Guides</div>
+            <div class="category-description">Team compositions and synergies</div>
+          </div>
+          <svg class="category-arrow" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </a>
+        
+        <a href="{{ section.settings.blog_url }}/tagged/professions" class="category-card">
+          <div class="category-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+            </svg>
+          </div>
+          <div class="category-info">
+            <div class="category-name">Professions</div>
+            <div class="category-description">Engineering, Jewelcrafting, and more</div>
+          </div>
+          <svg class="category-arrow" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </a>
+        
+        <a href="{{ section.settings.blog_url }}/tagged/macros" class="category-card">
+          <div class="category-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="16 18 22 12 16 6"></polyline>
+              <polyline points="8 6 2 12 8 18"></polyline>
+            </svg>
+          </div>
+          <div class="category-info">
+            <div class="category-name">Macros & Addons</div>
+            <div class="category-description">Essential macros and UI setup</div>
+          </div>
+          <svg class="category-arrow" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </a>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if section.settings.show_brackets %}
+    <div class="class-hub-section">
+      <div class="section-header">
+        <h2 class="section-title">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+          By Bracket
+        </h2>
+        <p class="section-description">Find guides for your preferred format</p>
+      </div>
+      
+      <div class="bracket-grid">
+        <a href="{{ section.settings.blog_url }}/tagged/2v2" class="bracket-card">
+          <span class="bracket-icon">⚔️</span>
+          <span class="bracket-name">2v2 Arena</span>
+          <span class="bracket-description">Doubles strategies</span>
+        </a>
+        
+        <a href="{{ section.settings.blog_url }}/tagged/3v3" class="bracket-card">
+          <span class="bracket-icon">👥</span>
+          <span class="bracket-name">3v3 Arena</span>
+          <span class="bracket-description">The competitive bracket</span>
+        </a>
+        
+        <a href="{{ section.settings.blog_url }}/tagged/5v5" class="bracket-card">
+          <span class="bracket-icon">🏆</span>
+          <span class="bracket-name">5v5 Arena</span>
+          <span class="bracket-description">Large scale coordination</span>
+        </a>
+        
+        <a href="{{ section.settings.blog_url }}/tagged/battlegrounds" class="bracket-card">
+          <span class="bracket-icon">🚩</span>
+          <span class="bracket-name">Battlegrounds</span>
+          <span class="bracket-description">BG strategies and tips</span>
+        </a>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if section.settings.show_cta %}
+    <div class="hub-cta">
+      <h3 class="hub-cta-title">{{ section.settings.cta_title }}</h3>
+      <p class="hub-cta-text">{{ section.settings.cta_text }}</p>
+      <a href="{{ section.settings.cta_link }}" class="hub-cta-button">
+        {{ section.settings.cta_button_text }}
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </a>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Guides Hub",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Hero Section"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "Arena Guides"
+    },
+    {
+      "type": "textarea",
+      "id": "subtitle",
+      "label": "Subtitle",
+      "default": "Everything you need to dominate TBC arena. Class guides, strategies, macros, and more from top-rated players."
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background Color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent Color",
+      "default": "#22c55e"
+    },
+    {
+      "type": "header",
+      "content": "Blog Settings"
+    },
+    {
+      "type": "url",
+      "id": "blog_url",
+      "label": "Blog URL",
+      "info": "Select your guides blog"
+    },
+    {
+      "type": "header",
+      "content": "Sections"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_classes",
+      "label": "Show Class Guides",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_categories",
+      "label": "Show Categories",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_brackets",
+      "label": "Show Brackets",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Call to Action"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_cta",
+      "label": "Show CTA",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "cta_title",
+      "label": "CTA Title",
+      "default": "Can't Find What You Need?"
+    },
+    {
+      "type": "textarea",
+      "id": "cta_text",
+      "label": "CTA Text",
+      "default": "Get personalized coaching from multi-glad and Rank 1 players who can answer all your questions."
+    },
+    {
+      "type": "text",
+      "id": "cta_button_text",
+      "label": "CTA Button Text",
+      "default": "Book a Coaching Session"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "CTA Link"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Guides Hub"
+    }
+  ]
+}
+{% endschema %}

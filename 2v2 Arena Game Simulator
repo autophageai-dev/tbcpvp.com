@@ -1,0 +1,3551 @@
+{% comment %}
+TBC 2v2 Arena Simulator V15 - Simplified Matchup-Based Trivia
+Major Changes: Removed all matchup analysis/strategy. Questions now filter by classes in the match (2 class-specific + 1 general).
+{% endcomment %}
+
+<style>
+.arena-sim-v14 {
+    background: #000;
+    color: #e0e0e0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    padding: 60px 20px;
+    min-height: 100vh;
+    position: relative;
+}
+
+.arena-sim-v14::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        linear-gradient(90deg, rgba(0,255,65,0.03) 1px, transparent 1px),
+        linear-gradient(rgba(0,255,65,0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.arena-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+    padding: 10px;
+}
+
+.arena-header {
+    text-align: center;
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.arena-logo {
+    max-width: 300px;
+    height: auto;
+    margin: 0 auto 20px;
+    display: block;
+    filter: drop-shadow(0 0 20px rgba(0, 255, 65, 0.5));
+    transition: filter 0.3s;
+}
+
+.arena-logo:hover {
+    filter: drop-shadow(0 0 30px rgba(0, 255, 65, 0.8));
+}
+
+.arena-title {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: #00ff41;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    text-shadow: 0 0 30px rgba(0, 255, 65, 0.8);
+}
+
+.arena-subtitle {
+    font-size: 1.1rem;
+    color: #ffc800;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.arena-card {
+    background: linear-gradient(135deg, rgba(10,10,10,0.95) 0%, rgba(5,5,5,0.95) 100%);
+    border: 2px solid #1a1a1a;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 10px 40px rgba(0, 255, 65, 0.15), inset 0 1px 0 rgba(0, 255, 65, 0.1);
+    position: relative;
+    overflow: hidden;
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.arena-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #00ff41, transparent);
+}
+
+.arena-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: 
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 255, 65, 0.03) 2px, rgba(0, 255, 65, 0.03) 4px);
+    pointer-events: none;
+}
+
+.arena-card > * {
+    position: relative;
+    z-index: 1;
+}
+
+.match-card-bg, .queue-card-bg, .combat-card-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    filter: grayscale(1) brightness(0.3);
+    z-index: 0;
+    transition: filter 0.3s;
+}
+
+.queue-card-bg {
+    background-image: url('https://th.bing.com/th/id/R.baccfe88a061abf2177c5cc7cebbc51c?rik=voTW9z7VCcSU%2fQ&pid=ImgRaw&r=0');
+}
+
+.combat-card-bg {
+    filter: grayscale(0.85) brightness(0.25);
+}
+
+.queue-enhanced {
+    border: 3px solid #00ff41 !important;
+    animation: queueGlowPulse 2s infinite, scaleIn 0.5s ease-out;
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes queueGlowPulse {
+    0%, 100% { 
+        box-shadow: 
+            0 10px 40px rgba(0, 255, 65, 0.4),
+            inset 0 0 30px rgba(0, 255, 65, 0.1);
+    }
+    50% { 
+        box-shadow: 
+            0 15px 60px rgba(0, 255, 65, 0.8),
+            inset 0 0 50px rgba(0, 255, 65, 0.2);
+    }
+}
+
+.step-title {
+    font-size: 1.6rem;
+    color: #00ff41;
+    margin-bottom: 35px;
+    font-weight: 800;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+}
+
+.team-naming {
+    margin-bottom: 40px;
+    padding: 25px;
+    background: rgba(0, 255, 65, 0.05);
+    border: 1px solid #1a1a1a;
+    border-radius: 12px;
+    box-shadow: inset 0 1px 0 rgba(0, 255, 65, 0.2);
+    transition: all 0.3s;
+}
+
+.team-naming:hover {
+    background: rgba(0, 255, 65, 0.08);
+    border-color: #00ff41;
+}
+
+.naming-label {
+    font-size: 0.9rem;
+    color: #00ff41;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+
+.naming-input {
+    width: 100%;
+    background: #000;
+    border: 1px solid #1a1a1a;
+    color: #e0e0e0;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s;
+}
+
+.naming-input:focus {
+    outline: none;
+    border-color: #00ff41;
+    box-shadow: 0 0 0 3px rgba(0, 255, 65, 0.2);
+}
+
+.naming-input::placeholder {
+    color: #444;
+}
+
+.faction-selector {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    margin-bottom: 50px;
+    padding-bottom: 40px;
+    border-bottom: 1px solid #1a1a1a;
+}
+
+.faction-option {
+    background: linear-gradient(135deg, #0a0a0a 0%, #000 100%);
+    border: 3px solid #1a1a1a;
+    border-radius: 16px;
+    padding: 25px 35px;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    min-width: 200px;
+    position: relative;
+}
+
+.faction-option:hover {
+    transform: translateY(-8px);
+}
+
+.faction-option.alliance.active {
+    border-color: #2563eb;
+    background: radial-gradient(circle at top, rgba(37, 99, 235, 0.2), #0a0a0a);
+    box-shadow: 0 0 40px rgba(37, 99, 235, 0.6);
+    animation: glowPulse 2s infinite;
+}
+
+.faction-option.horde.active {
+    border-color: #dc2626;
+    background: radial-gradient(circle at top, rgba(220, 38, 38, 0.2), #0a0a0a);
+    box-shadow: 0 0 40px rgba(220, 38, 38, 0.6);
+    animation: glowPulse 2s infinite;
+}
+
+@keyframes glowPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.85; }
+}
+
+.faction-icon {
+    width: 90px;
+    height: 90px;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s;
+}
+
+.faction-option:hover .faction-icon {
+    transform: scale(1.1);
+}
+
+.faction-name {
+    font-size: 1.4rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.faction-option.alliance .faction-name {
+    color: #3b82f6;
+    text-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
+}
+
+.faction-option.horde .faction-name {
+    color: #ef4444;
+    text-shadow: 0 0 20px rgba(239, 68, 68, 0.8);
+}
+
+.team-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+}
+
+.player-section {
+    background: linear-gradient(135deg, #0a0a0a 0%, #050505 100%);
+    border: 1px solid #1a1a1a;
+    border-radius: 12px;
+    padding: 35px;
+    box-shadow: inset 0 1px 0 rgba(0, 255, 65, 0.1);
+    transition: all 0.3s;
+}
+
+.player-section:hover {
+    border-color: #00ff41;
+    box-shadow: inset 0 1px 0 rgba(0, 255, 65, 0.2), 0 0 20px rgba(0, 255, 65, 0.1);
+}
+
+.player-label {
+    font-size: 1.3rem;
+    color: #00ff41;
+    margin-bottom: 25px;
+    font-weight: 800;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-label {
+    color: #00ff41;
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.class-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.class-option {
+    background: #000;
+    border: 2px solid #1a1a1a;
+    padding: 15px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.class-option:hover {
+    transform: scale(1.08);
+    background: rgba(0, 255, 65, 0.05);
+    border-color: #00ff41;
+}
+
+.class-option.active {
+    border-color: #00ff41;
+    background: rgba(0, 255, 65, 0.15);
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+    transform: scale(1.05);
+}
+
+.class-icon {
+    width: 50px;
+    height: 50px;
+    opacity: 0.5;
+    transition: all 0.3s;
+    filter: grayscale(1);
+}
+
+.class-option:hover .class-icon,
+.class-option.active .class-icon {
+    opacity: 1;
+    filter: grayscale(0) drop-shadow(0 0 8px rgba(0, 255, 65, 0.6));
+}
+
+.class-text {
+    font-size: 0.8rem;
+    color: #555;
+    font-weight: 600;
+    transition: color 0.3s;
+}
+
+.class-option.active .class-text {
+    color: #00ff41;
+}
+
+.spec-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.spec-option {
+    background: #000;
+    border: 2px solid #1a1a1a;
+    padding: 15px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.spec-option:hover {
+    transform: scale(1.08);
+    background: rgba(0, 255, 65, 0.05);
+    border-color: #00ff41;
+}
+
+.spec-option.active {
+    border-color: #00ff41;
+    background: rgba(0, 255, 65, 0.15);
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+    transform: scale(1.05);
+}
+
+.spec-icon {
+    width: 50px;
+    height: 50px;
+    opacity: 0.5;
+    transition: all 0.3s;
+    filter: grayscale(1);
+    border-radius: 4px;
+}
+
+.spec-option:hover .spec-icon,
+.spec-option.active .spec-icon {
+    opacity: 1;
+    filter: grayscale(0) drop-shadow(0 0 8px rgba(0, 255, 65, 0.6));
+}
+
+.spec-text {
+    font-size: 0.75rem;
+    color: #555;
+    font-weight: 600;
+    transition: color 0.3s;
+}
+
+.spec-option.active .spec-text {
+    color: #00ff41;
+}
+
+.race-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.race-option {
+    background: #000;
+    border: 2px solid #1a1a1a;
+    border-radius: 8px;
+    padding: 12px 8px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.race-option:hover {
+    border-color: #00ff41;
+    background: rgba(0, 255, 65, 0.05);
+    transform: scale(1.08);
+}
+
+.race-option.active {
+    border-color: #00ff41;
+    background: rgba(0, 255, 65, 0.15);
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+    transform: scale(1.05);
+}
+
+.race-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    opacity: 0.6;
+    transition: opacity 0.3s;
+}
+
+.race-option:hover .race-icon,
+.race-option.active .race-icon {
+    opacity: 1;
+}
+
+.race-name {
+    font-size: 0.75rem;
+    color: #555;
+    font-weight: 600;
+    transition: color 0.3s;
+}
+
+.race-option.active .race-name {
+    color: #00ff41;
+}
+
+.queue-btn {
+    background: linear-gradient(135deg, #00ff41 0%, #00cc33 100%);
+    color: #000;
+    border: none;
+    padding: 16px 60px;
+    font-size: 1.3rem;
+    font-weight: 900;
+    border-radius: 12px;
+    cursor: pointer;
+    display: block;
+    margin: 30px auto 0;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    box-shadow: 0 10px 40px rgba(0, 255, 65, 0.5);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.queue-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.queue-btn:hover:not(:disabled)::before {
+    width: 300px;
+    height: 300px;
+}
+
+.queue-btn:hover:not(:disabled) {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 50px rgba(0, 255, 65, 0.7);
+}
+
+.queue-btn:disabled {
+    background: #1a1a1a;
+    color: #333;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.queue-screen {
+    display: none;
+    text-align: center;
+    padding: 100px 20px;
+}
+
+.queue-text {
+    font-size: 2.5rem;
+    color: #00ff41;
+    margin-bottom: 40px;
+    font-weight: 900;
+    animation: pulse 1.5s infinite;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    text-shadow: 0 0 30px rgba(0, 255, 65, 0.8);
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.05); }
+}
+
+.queue-timer {
+    font-size: 4.5rem;
+    color: #00ff41;
+    font-weight: 900;
+    text-shadow: 0 0 50px rgba(0, 255, 65, 1);
+}
+
+.match-screen, .fight-screen, .results-screen {
+    display: none;
+}
+
+.match-header {
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.match-title {
+    font-size: 1.3rem;
+    color: #00ff41;
+    font-weight: 900;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    animation: titleGlow 2s infinite;
+}
+
+@keyframes titleGlow {
+    0%, 100% { text-shadow: 0 0 20px rgba(0, 255, 65, 0.8); }
+    50% { text-shadow: 0 0 30px rgba(0, 255, 65, 1); }
+}
+
+.vs-container {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.team-display {
+    background: linear-gradient(135deg, rgba(10,10,10,0.9) 0%, rgba(0,0,0,0.9) 100%);
+    border: 2px solid #1a1a1a;
+    border-radius: 8px;
+    padding: 10px;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s;
+}
+
+.team-display:hover {
+    border-color: #00ff41;
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
+}
+
+.team-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #1a1a1a;
+}
+
+.team-name {
+    font-size: 0.9rem;
+    color: #00ff41;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.team-server {
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: 600;
+}
+
+.team-mmr {
+    font-size: 1.1rem;
+    color: #ffc800;
+    font-weight: 700;
+}
+
+.player-display {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 5px 0;
+    padding: 6px 10px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid #1a1a1a;
+    border-radius: 6px;
+    transition: all 0.3s;
+}
+
+.player-display:hover {
+    border-color: #00ff41;
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.25);
+    transform: translateX(4px);
+}
+
+.player-icons {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.player-display .class-icon {
+    width: 24px;
+    height: 24px;
+    opacity: 1;
+    filter: drop-shadow(0 0 5px rgba(0, 255, 65, 0.5));
+}
+
+.player-display .spec-icon {
+    width: 20px;
+    height: 20px;
+    opacity: 1;
+    filter: drop-shadow(0 0 4px rgba(0, 255, 65, 0.4));
+    border-radius: 3px;
+}
+
+.player-display .race-icon {
+    width: 22px;
+    height: 22px;
+    opacity: 1;
+}
+
+.player-details {
+    flex: 1;
+}
+
+.player-name {
+    font-size: 0.85rem;
+    color: #e0e0e0;
+    font-weight: 800;
+}
+
+.player-info {
+    font-size: 0.75rem;
+    color: #00ff41;
+    margin-top: 2px;
+    font-weight: 600;
+}
+
+.vs-symbol {
+    font-size: 1.5rem;
+    color: #00ff41;
+    font-weight: 900;
+    text-shadow: 0 0 20px rgba(0, 255, 65, 1);
+    animation: vsRotate 3s ease-in-out infinite;
+}
+
+@keyframes vsRotate {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.arena-display {
+    margin: 5px 0;
+    text-align: center;
+}
+
+.arena-name {
+    font-size: 0.9rem;
+    color: #00ff41;
+    font-weight: 800;
+    text-shadow: 0 0 15px rgba(0, 255, 65, 0.7);
+    margin-bottom: 5px;
+}
+
+.start-fight-btn {
+    background: linear-gradient(135deg, #00ff41 0%, #00cc33 100%);
+    color: #000;
+    border: none;
+    padding: 10px 35px;
+    font-size: 1rem;
+    font-weight: 900;
+    border-radius: 10px;
+    cursor: pointer;
+    display: block;
+    margin: 8px auto;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    animation: buttonPulse 2s infinite;
+    box-shadow: 0 10px 50px rgba(0, 255, 65, 0.6);
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+@keyframes buttonPulse {
+    0%, 100% { box-shadow: 0 10px 50px rgba(0, 255, 65, 0.6); }
+    50% { box-shadow: 0 15px 70px rgba(0, 255, 65, 0.9); }
+}
+
+.start-fight-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.start-fight-btn:hover::before {
+    width: 400px;
+    height: 400px;
+}
+
+.start-fight-btn:hover {
+    transform: scale(1.05) translateY(-5px);
+}
+
+.combat-header {
+    text-align: center;
+    margin-bottom: 5px;
+    padding: 6px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid #00ff41;
+    border-radius: 6px;
+}
+
+.combat-arena-title {
+    font-size: 0.9rem;
+    color: #00ff41;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 0 0 15px rgba(0, 255, 65, 0.8);
+}
+
+.fight-animation {
+    margin: 8px 0;
+    padding: 12px 8px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid #00ff41;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+    min-height: 120px;
+}
+
+.combat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.combatant {
+    padding: 6px 5px;
+    background: rgba(10, 10, 10, 0.8);
+    border: 2px solid #1a1a1a;
+    border-radius: 6px;
+    text-align: center;
+    position: relative;
+    transition: all 0.3s;
+}
+
+.combatant.ally {
+    border-color: #2563eb;
+}
+
+.combatant.enemy {
+    border-color: #dc2626;
+}
+
+.combatant.dead {
+    opacity: 0.3;
+    filter: grayscale(1);
+    transform: scale(0.95);
+    transition: all 0.5s ease-out;
+}
+
+@keyframes combatMove1 {
+    0%, 100% { transform: translateY(0) scale(1); }
+    33% { transform: translateY(-12px) scale(1.06); }
+    66% { transform: translateY(0) rotate(2deg); }
+}
+
+@keyframes combatMove2 {
+    0%, 100% { transform: translateY(0) scale(1); }
+    25% { transform: translateY(-8px) scale(1.04); }
+    75% { transform: translateY(0) rotate(-2deg); }
+}
+
+@keyframes combatMove3 {
+    0%, 100% { transform: translateY(0) scale(1); }
+    40% { transform: translateY(-10px) scale(1.05); }
+    80% { transform: translateY(0) rotate(1deg); }
+}
+
+@keyframes combatMove4 {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-6px) scale(1.03); }
+    90% { transform: translateY(0) rotate(-1deg); }
+}
+
+.combatant:nth-child(1) {
+    animation: combatMove1 3.2s ease-in-out infinite;
+}
+
+.combatant:nth-child(2) {
+    animation: combatMove2 2.8s ease-in-out infinite 0.5s;
+}
+
+.combatant:nth-child(3) {
+    animation: combatMove3 3.5s ease-in-out infinite 1s;
+}
+
+.combatant:nth-child(4) {
+    animation: combatMove4 3s ease-in-out infinite 1.5s;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
+
+.combatant.taking-damage {
+    animation: shake 0.3s;
+}
+
+.combatant-icons {
+    display: flex;
+    justify-content: center;
+    gap: 3px;
+    margin-bottom: 4px;
+}
+
+.combatant-icon {
+    width: 24px;
+    height: 24px;
+    opacity: 0.9;
+}
+
+.combatant-spec-icon {
+    width: 18px;
+    height: 18px;
+    opacity: 0.9;
+    border-radius: 3px;
+}
+
+.combatant-race-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    opacity: 0.9;
+}
+
+.combatant-name {
+    font-size: 0.7rem;
+    color: #00ff41;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.combatant-bars {
+    margin-top: 6px;
+}
+
+.combatant-hp,
+.combatant-resource {
+    margin-bottom: 3px;
+    height: 6px;
+    background: #1a1a1a;
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+}
+
+.combatant-hp-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #00ff41, #00cc33);
+    transition: width 0.5s;
+}
+
+.combatant-resource-bar {
+    height: 100%;
+    transition: width 0.6s;
+}
+
+.combatant-resource-bar.mana {
+    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+}
+
+.combatant-resource-bar.rage {
+    background: linear-gradient(90deg, #dc2626, #f87171);
+}
+
+.combatant-resource-bar.energy {
+    background: linear-gradient(90deg, #fbbf24, #fcd34d);
+}
+
+.combatant-trinket {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    opacity: 0.9;
+    transition: all 0.3s;
+}
+
+.combatant-trinket.used {
+    filter: grayscale(1);
+    opacity: 0.4;
+}
+
+@keyframes trinketActivate {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3) rotate(10deg); }
+    100% { transform: scale(1); }
+}
+
+.combatant-trinket.activating {
+    animation: trinketActivate 0.8s ease-out;
+}
+
+.combat-log {
+    font-size: 1.05rem;
+    color: #999;
+    text-align: center;
+    margin-top: 25px;
+    font-style: italic;
+    min-height: 30px;
+}
+
+.question-container {
+    background: linear-gradient(135deg, rgba(10,10,10,0.95) 0%, rgba(5,5,5,0.95) 100%);
+    border: 2px solid #00ff41;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 10px 0;
+    animation: slideUp 0.5s ease-out;
+}
+
+.question-number {
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.question-text {
+    font-size: 1rem;
+    color: #00ff41;
+    margin-bottom: 12px;
+    line-height: 1.4;
+    font-weight: 700;
+}
+
+.answer-grid {
+    display: grid;
+    gap: 8px;
+}
+
+.answer-option {
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid #1a1a1a;
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 0.9rem;
+}
+
+.answer-option:hover {
+    border-color: #00ff41;
+    background: rgba(0, 255, 65, 0.08);
+    transform: translateX(4px);
+}
+
+.answer-option.selected {
+    border-color: #00ff41;
+    background: rgba(0, 255, 65, 0.15);
+}
+
+.answer-option.correct {
+    border-color: #00ff41;
+    background: rgba(0, 255, 65, 0.3);
+    animation: correctPulse 0.5s ease-out;
+}
+
+@keyframes correctPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+    100% { transform: scale(1); }
+}
+
+.answer-option.incorrect {
+    border-color: #ff0000;
+    background: rgba(255, 0, 0, 0.3);
+    animation: shake 0.5s;
+}
+
+.submit-answer-btn {
+    background: linear-gradient(135deg, #00ff41 0%, #00cc33 100%);
+    color: #000;
+    border: none;
+    padding: 18px 70px;
+    font-size: 1.3rem;
+    font-weight: 800;
+    border-radius: 12px;
+    cursor: pointer;
+    margin: 35px auto 0;
+    display: block;
+    text-transform: uppercase;
+    transition: all 0.3s;
+}
+
+.submit-answer-btn:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0, 255, 65, 0.5);
+}
+
+.submit-answer-btn:disabled {
+    background: #1a1a1a;
+    color: #333;
+    cursor: not-allowed;
+}
+
+.feedback-box {
+    background: rgba(0, 0, 0, 0.9);
+    border: 2px solid #ffc800;
+    border-radius: 12px;
+    padding: 25px;
+    margin-top: 25px;
+    display: none;
+    animation: slideUp 0.3s ease-out;
+}
+
+.feedback-box.show {
+    display: block;
+}
+
+.feedback-title {
+    font-size: 1.3rem;
+    font-weight: 800;
+    margin-bottom: 12px;
+    color: #ffc800;
+}
+
+.feedback-text {
+    color: #ccc;
+    line-height: 1.8;
+    font-size: 1.05rem;
+}
+
+.match-result {
+    text-align: center;
+    padding: 15px 10px;
+}
+
+.result-title {
+    font-size: 2rem;
+    font-weight: 900;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.result-title.victory {
+    color: #00ff41;
+    text-shadow: 0 0 40px rgba(0, 255, 65, 1);
+    animation: victoryGlow 1.5s infinite;
+}
+
+@keyframes victoryGlow {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+}
+
+.result-title.defeat {
+    color: #ff0000;
+    text-shadow: 0 0 40px rgba(255, 0, 0, 1);
+}
+
+.mmr-change {
+    font-size: 1.5rem;
+    font-weight: 900;
+    margin: 10px 0;
+}
+
+.mmr-change.positive {
+    color: #00ff41;
+    text-shadow: 0 0 20px rgba(0, 255, 65, 0.9);
+}
+
+.mmr-change.negative {
+    color: #ff0000;
+    text-shadow: 0 0 20px rgba(255, 0, 0, 0.9);
+}
+
+.mmr-display {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 8px;
+    font-weight: 800;
+}
+
+.record-display {
+    font-size: 1rem;
+    color: #00ff41;
+    margin-bottom: 12px;
+    font-weight: 700;
+}
+
+.match-summary {
+    background: linear-gradient(135deg, rgba(10,10,10,0.95) 0%, rgba(0,0,0,0.95) 100%);
+    border: 2px solid #1a1a1a;
+    border-radius: 10px;
+    padding: 12px;
+    margin: 12px 0;
+    text-align: left;
+}
+
+.summary-title {
+    font-size: 1rem;
+    color: #00ff41;
+    margin-bottom: 10px;
+    text-align: center;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.summary-text {
+    color: #ccc;
+    line-height: 2;
+    margin-bottom: 25px;
+    font-size: 1.08rem;
+}
+
+.share-section {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.share-btn {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    color: #fff;
+    border: none;
+    padding: 12px 40px;
+    font-size: 1rem;
+    font-weight: 700;
+    border-radius: 10px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s;
+}
+
+.share-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(37, 99, 235, 0.6);
+}
+
+.reset-btn {
+    background: linear-gradient(135deg, rgba(10,10,10,0.95) 0%, rgba(0,0,0,0.95) 100%);
+    border: 2px solid #00ff41;
+    color: #00ff41;
+    padding: 10px 35px;
+    font-size: 1rem;
+    font-weight: 800;
+    border-radius: 10px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.reset-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(0, 255, 65, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.reset-btn:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.reset-btn:hover {
+    background: rgba(0, 255, 65, 0.15);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 40px rgba(0, 255, 65, 0.5);
+}
+
+.results-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 8px auto 10px;
+}
+
+.retire-btn {
+    background: linear-gradient(135deg, rgba(255,65,54,0.2) 0%, rgba(139,0,0,0.2) 100%);
+    border: 2px solid #ff4136;
+    color: #ff4136;
+    padding: 10px 35px;
+    font-size: 1rem;
+    font-weight: 800;
+    border-radius: 10px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s;
+}
+
+.retire-btn:hover {
+    background: rgba(255, 65, 54, 0.25);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(255, 65, 54, 0.6);
+}
+
+@media (max-width: 968px) {
+    .team-grid {
+        grid-template-columns: 1fr;
+    }
+    .class-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .spec-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .vs-container {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+    .vs-symbol {
+        font-size: 4rem;
+    }
+    .combat-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .arena-title {
+        font-size: 2rem;
+    }
+    .result-title {
+        font-size: 3rem;
+    }
+    .faction-selector {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+@media (max-width: 640px) {
+    .arena-card {
+        padding: 20px 15px;
+    }
+    .class-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .race-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .queue-btn, .start-fight-btn {
+        padding: 14px 40px;
+        font-size: 1.1rem;
+    }
+    .combat-grid {
+        grid-template-columns: 1fr;
+    }
+    .strategy-title {
+        font-size: 1.3rem;
+    }
+}
+
+/* CHALLENGE START SCREEN */
+.challenge-start-screen {
+    display: none;
+    text-align: center;
+}
+
+.challenge-card-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(0,255,65,0.05) 0%, rgba(0,0,0,0.95) 100%);
+    border-radius: 20px;
+}
+
+.challenge-announcement {
+    position: relative;
+    z-index: 1;
+    padding: 15px 15px;
+}
+
+.challenge-icon {
+    font-size: 2.5rem;
+    margin-bottom: 8px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.08); opacity: 0.8; }
+}
+
+.challenge-title {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #00ff41;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 0 0 30px rgba(0, 255, 65, 0.8);
+}
+
+.challenge-subtitle {
+    font-size: 0.9rem;
+    color: #ffc800;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.challenge-rules {
+    background: rgba(0, 255, 65, 0.1);
+    border: 2px solid #00ff41;
+    border-radius: 10px;
+    padding: 12px;
+    margin: 12px auto;
+    max-width: 600px;
+}
+
+.rule-item {
+    font-size: 0.85rem;
+    color: #e0e0e0;
+    margin: 6px 0;
+    font-weight: 600;
+    text-align: left;
+}
+
+.your-comp {
+    margin-top: 15px;
+}
+
+.comp-label {
+    font-size: 0.75rem;
+    color: #666;
+    margin-bottom: 6px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.comp-display {
+    font-size: 1.2rem;
+    color: #00ff41;
+    font-weight: 800;
+    text-shadow: 0 0 15px rgba(0, 255, 65, 0.6);
+}
+
+.begin-challenge-btn {
+    background: linear-gradient(135deg, #00ff41 0%, #00cc33 100%);
+    color: #000;
+    border: none;
+    padding: 12px 45px;
+    font-size: 1.1rem;
+    font-weight: 900;
+    border-radius: 12px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 10px 15px;
+    transition: all 0.3s;
+    position: relative;
+    z-index: 1;
+}
+
+.begin-challenge-btn:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 15px 60px rgba(0, 255, 65, 0.8);
+}
+
+.view-leaderboard-btn {
+    background: linear-gradient(135deg, rgba(255,200,0,0.2) 0%, rgba(255,200,0,0.1) 100%);
+    color: #ffc800;
+    border: 2px solid #ffc800;
+    padding: 18px 50px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    border-radius: 12px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 10px;
+    transition: all 0.3s;
+    position: relative;
+    z-index: 1;
+}
+
+.view-leaderboard-btn:hover {
+    background: linear-gradient(135deg, rgba(255,200,0,0.3) 0%, rgba(255,200,0,0.2) 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(255, 200, 0, 0.4);
+}
+
+/* QUESTION RESULT MODAL */
+.question-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: linear-gradient(135deg, rgba(10,10,10,0.98) 0%, rgba(0,0,0,0.98) 100%);
+    border: 3px solid #00ff41;
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 600px;
+    width: 90%;
+    text-align: center;
+    animation: modalPop 0.3s ease-out;
+}
+
+@keyframes modalPop {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.modal-result {
+    font-size: 3rem;
+    font-weight: 900;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+}
+
+.modal-result.correct {
+    color: #00ff41;
+    text-shadow: 0 0 60px rgba(0, 255, 65, 1);
+    animation: correctGlow 1s infinite;
+}
+
+@keyframes correctGlow {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.modal-result.incorrect {
+    color: #ff4136;
+    text-shadow: 0 0 60px rgba(255, 65, 54, 1);
+}
+
+.modal-explanation {
+    font-size: 1.1rem;
+    color: #e0e0e0;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: rgba(0, 255, 65, 0.1);
+    border-radius: 12px;
+    border: 1px solid rgba(0, 255, 65, 0.3);
+}
+
+.modal-continue-btn {
+    background: linear-gradient(135deg, #00ff41 0%, #00cc33 100%);
+    color: #000;
+    border: none;
+    padding: 15px 50px;
+    font-size: 1.2rem;
+    font-weight: 900;
+    border-radius: 12px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: all 0.3s;
+}
+
+.modal-continue-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 40px rgba(0, 255, 65, 0.6);
+}
+
+/* TIMER DISPLAY */
+.timer-display {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, rgba(0,0,0,0.95) 0%, rgba(10,10,10,0.95) 100%);
+    border: 3px solid #00ff41;
+    border-radius: 16px;
+    padding: 20px 40px;
+    z-index: 1000;
+    display: none;
+    box-shadow: 0 10px 40px rgba(0, 255, 65, 0.5);
+    animation: timerFadeIn 0.5s ease-out;
+}
+
+@keyframes timerFadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.timer-label {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.timer-value {
+    font-size: 2.5rem;
+    color: #00ff41;
+    font-weight: 900;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+    text-shadow: 0 0 30px rgba(0, 255, 65, 0.8);
+}
+
+.timer-value.warning {
+    color: #ffc800;
+    animation: timerWarning 1s infinite;
+}
+
+.timer-value.critical {
+    color: #ff4136;
+    animation: timerCritical 0.5s infinite;
+}
+
+@keyframes timerWarning {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+@keyframes timerCritical {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+/* TIME'S UP SCREEN */
+.time-up-screen {
+    display: none;
+    text-align: center;
+}
+
+.time-up-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255,65,54,0.1) 0%, rgba(0,0,0,0.95) 100%);
+    border-radius: 20px;
+}
+
+.time-up-content {
+    position: relative;
+    z-index: 1;
+    padding: 30px 20px;
+}
+
+.time-up-icon {
+    font-size: 4rem;
+    margin-bottom: 15px;
+}
+
+.time-up-title {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: #ff4136;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    text-shadow: 0 0 40px rgba(255, 65, 54, 0.8);
+}
+
+.time-up-subtitle {
+    font-size: 1.1rem;
+    color: #ffc800;
+    margin-bottom: 25px;
+    font-weight: 600;
+}
+
+.final-score {
+    background: linear-gradient(135deg, rgba(0,255,65,0.1) 0%, rgba(0,0,0,0.8) 100%);
+    border: 2px solid #00ff41;
+    border-radius: 16px;
+    padding: 25px;
+    margin: 20px auto;
+    max-width: 600px;
+}
+
+.score-label {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 15px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.score-display {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.score-wins, .score-losses {
+    font-size: 3rem;
+    font-weight: 900;
+}
+
+.score-wins {
+    color: #00ff41;
+    text-shadow: 0 0 30px rgba(0, 255, 65, 0.8);
+}
+
+.score-losses {
+    color: #ff4136;
+    text-shadow: 0 0 30px rgba(255, 65, 54, 0.6);
+}
+
+.score-separator {
+    font-size: 2.5rem;
+    color: #666;
+}
+
+.score-comp {
+    font-size: 1.5rem;
+    color: #ffc800;
+    font-weight: 700;
+    margin-top: 20px;
+}
+
+.submit-section {
+    margin: 25px 0;
+}
+
+.leaderboard-input {
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid #1a1a1a;
+    border-radius: 12px;
+    padding: 20px 30px;
+    font-size: 1.3rem;
+    color: #e0e0e0;
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 25px;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.leaderboard-input:focus {
+    outline: none;
+    border-color: #00ff41;
+    box-shadow: 0 0 30px rgba(0, 255, 65, 0.3);
+}
+
+.leaderboard-input::placeholder {
+    color: #666;
+}
+
+.submit-score-btn {
+    background: linear-gradient(135deg, #ffc800 0%, #ff9500 100%);
+    color: #000;
+    border: none;
+    padding: 22px 70px;
+    font-size: 1.4rem;
+    font-weight: 900;
+    border-radius: 14px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    transition: all 0.3s;
+}
+
+.submit-score-btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 50px rgba(255, 200, 0, 0.7);
+}
+
+.play-again-btn {
+    background: linear-gradient(135deg, rgba(10,10,10,0.95) 0%, rgba(0,0,0,0.95) 100%);
+    color: #00ff41;
+    border: 2px solid #00ff41;
+    padding: 20px 60px;
+    font-size: 1.3rem;
+    font-weight: 800;
+    border-radius: 12px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-top: 30px;
+    transition: all 0.3s;
+}
+
+.play-again-btn:hover {
+    background: linear-gradient(135deg, #00ff41 0%, #00cc33 100%);
+    color: #000;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 40px rgba(0, 255, 65, 0.6);
+}
+
+/* LEADERBOARD SCREEN */
+.leaderboard-screen {
+    display: none;
+}
+
+.leaderboard-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255,200,0,0.05) 0%, rgba(0,0,0,0.95) 100%);
+    border-radius: 20px;
+}
+
+.leaderboard-content {
+    position: relative;
+    z-index: 1;
+    padding: 30px 20px;
+}
+
+.leaderboard-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.leaderboard-title {
+    font-size: 3rem;
+    font-weight: 900;
+    color: #ffc800;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 5px;
+    text-shadow: 0 0 40px rgba(255, 200, 0, 0.8);
+}
+
+.leaderboard-subtitle {
+    font-size: 1.2rem;
+    color: #666;
+    font-weight: 600;
+}
+
+.your-result-banner {
+    background: linear-gradient(135deg, rgba(0,255,65,0.15) 0%, rgba(0,0,0,0.9) 100%);
+    border: 3px solid #00ff41;
+    border-radius: 16px;
+    padding: 25px;
+    margin-bottom: 30px;
+    box-shadow: 0 0 40px rgba(0, 255, 65, 0.3);
+}
+
+.result-banner-title {
+    font-size: 1rem;
+    color: #ffc800;
+    margin-bottom: 15px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 700;
+    text-align: center;
+}
+
+.result-banner-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.banner-team {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.banner-faction-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+}
+
+.banner-team-name {
+    font-size: 1.5rem;
+    color: #00ff41;
+    font-weight: 800;
+}
+
+.banner-comp {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    justify-content: center;
+}
+
+.banner-class-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border: 2px solid #00ff41;
+}
+
+.banner-player-name {
+    font-size: 1rem;
+    color: #999;
+    font-weight: 600;
+    margin-right: 8px;
+}
+
+.banner-stats {
+    text-align: right;
+    flex: 1;
+}
+
+.banner-record {
+    font-size: 2rem;
+    font-weight: 900;
+    margin-bottom: 5px;
+}
+
+.banner-wins {
+    color: #00ff41;
+}
+
+.banner-losses {
+    color: #ff4136;
+}
+
+.banner-mmr {
+    font-size: 1.2rem;
+    color: #ffc800;
+    font-weight: 700;
+}
+
+.leaderboard-list {
+    max-width: 900px;
+    margin: 0 auto 20px;
+}
+
+.leaderboard-entry {
+    background: linear-gradient(135deg, rgba(10,10,10,0.9) 0%, rgba(0,0,0,0.9) 100%);
+    border: 2px solid #1a1a1a;
+    border-radius: 14px;
+    padding: 25px 35px;
+    margin: 15px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s;
+}
+
+.leaderboard-entry:hover {
+    border-color: #00ff41;
+    box-shadow: 0 0 30px rgba(0, 255, 65, 0.2);
+    transform: translateX(10px);
+}
+
+.leaderboard-entry.top-1 {
+    border-color: #ffc800;
+    background: linear-gradient(135deg, rgba(255,200,0,0.15) 0%, rgba(0,0,0,0.9) 100%);
+}
+
+.leaderboard-entry.top-2 {
+    border-color: #c0c0c0;
+}
+
+.leaderboard-entry.top-3 {
+    border-color: #cd7f32;
+}
+
+.entry-rank {
+    font-size: 2rem;
+    font-weight: 900;
+    color: #666;
+    min-width: 60px;
+}
+
+.entry-rank.top-1 {
+    color: #ffc800;
+    text-shadow: 0 0 20px rgba(255, 200, 0, 0.6);
+}
+
+.entry-rank.top-2 {
+    color: #c0c0c0;
+}
+
+.entry-rank.top-3 {
+    color: #cd7f32;
+}
+
+.entry-info {
+    flex: 1;
+    margin: 0 30px;
+}
+
+.entry-name {
+    font-size: 1.5rem;
+    color: #00ff41;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+
+.entry-team-icons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.entry-faction-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+}
+
+.entry-class-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: 2px solid #1a1a1a;
+}
+
+.entry-player-name {
+    font-size: 0.9rem;
+    color: #999;
+    font-weight: 600;
+    margin-right: 12px;
+}
+
+.entry-comp {
+    font-size: 1rem;
+    color: #666;
+    font-weight: 600;
+}
+
+.entry-stats {
+    text-align: right;
+    min-width: 140px;
+}
+
+.entry-record {
+    font-size: 1.8rem;
+    font-weight: 900;
+    margin-bottom: 5px;
+}
+
+.entry-mmr {
+    font-size: 1rem;
+    color: #ffc800;
+    font-weight: 700;
+}
+
+.entry-wins {
+    color: #00ff41;
+}
+
+.entry-losses {
+    color: #ff4136;
+}
+
+.close-leaderboard-btn {
+    background: linear-gradient(135deg, rgba(10,10,10,0.95) 0%, rgba(0,0,0,0.95) 100%);
+    color: #00ff41;
+    border: 2px solid #00ff41;
+    padding: 18px 50px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    border-radius: 12px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: all 0.3s;
+}
+
+.close-leaderboard-btn:hover {
+    background: linear-gradient(135deg, #00ff41 0%, #00cc33 100%);
+    color: #000;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 40px rgba(0, 255, 65, 0.6);
+}
+
+.no-scores {
+    text-align: center;
+    padding: 80px 40px;
+    color: #666;
+    font-size: 1.3rem;
+}
+
+.no-scores.loading {
+    animation: pulse 1.5s infinite;
+}
+</style>
+
+<div class="arena-sim-v14">
+    <div class="arena-container">
+        <div id="builderView" class="arena-card">
+            <div class="arena-header">
+                <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/emptybg-processed-tbc20thlogorraw-20251219T060547_1.png?v=1766431386" alt="TBC 20th Anniversary" class="arena-logo">
+                <h1 class="arena-title">2v2 Arena Simulator</h1>
+                <p class="arena-subtitle">TBC Arena Trivia Challenge!</p>
+            </div>
+            
+            <div class="team-naming">
+                <label class="naming-label">Team Name (Optional)</label>
+                <input type="text" id="teamName" class="naming-input" placeholder="Enter your team name..." maxlength="25">
+            </div>
+
+            <div class="step-title">Step 1: Select Team Faction</div>
+            <div class="faction-selector">
+                <div class="faction-option alliance" data-faction="Alliance">
+                    <img src="https://wow.zamimg.com/images/wow/icons/large/inv_bannerpvp_02.jpg" alt="Alliance" class="faction-icon">
+                    <div class="faction-name">Alliance</div>
+                </div>
+                <div class="faction-option horde" data-faction="Horde">
+                    <img src="https://wow.zamimg.com/images/wow/icons/large/inv_bannerpvp_01.jpg" alt="Horde" class="faction-icon">
+                    <div class="faction-name">Horde</div>
+                </div>
+            </div>
+
+            <div class="step-title">Step 2: Build Your Team</div>
+            <div class="team-grid">
+                <div class="player-section">
+                    <div class="player-label">Player 1</div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Player Name (Optional)</label>
+                        <input type="text" id="playerName1" class="naming-input" placeholder="Enter player name..." maxlength="15">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Select Class</label>
+                        <div class="class-grid" data-player="1">
+                            <div class="class-option" data-class="Warrior">
+                                <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/war.png?v=1766427831" class="class-icon" alt="Warrior">
+                                <span class="class-text">Warrior</span>
+                            </div>
+                            <div class="class-option" data-class="Paladin">
+                                <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/pala.png?v=1766427831" class="class-icon" alt="Paladin">
+                                <span class="class-text">Paladin</span>
+                            </div>
+                            <div class="class-option" data-class="Hunter">
+                                <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/hunter.png?v=1766427832" class="class-icon" alt="Hunter">
+                                <span class="class-text">Hunter</span>
+                            </div>
+                            <div class="class-option" data-class="Rogue">
+                                <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/rogue.png?v=1766427831" class="class-icon" alt="Rogue">
+                                <span class="class-text">Rogue</span>
+                            </div>
+                            <div class="class-option" data-class="Priest">
+                                <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/priest.png?v=1766427831" class="class-icon" alt="Priest">
+                                <span class="class-text">Priest</span>
+                            </div>
+                            <div class="class-option" data-class="Shaman">
+                                <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/shaman.png?v=1766427831" class="class-icon" alt="Shaman">
+                                <span class="class-text">Shaman</span>
+                            </div>
+                            <div class="class-option" data-class="Mage">
+                                <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/mage.png?v=1766427831" class="class-icon" alt="Mage">
+                                <span class="class-text">Mage</span>
+                            </div>
+                            <div class="class-option" data-class="Warlock">
+                                <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/warlock.png?v=1766427831" class="class-icon" alt="Warlock">
+                                <span class="class-text">Warlock</span>
+                            </div>
+                            <div class="class-option" data-class="Druid">
+                                <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/druid.png?v=1766427831" class="class-icon" alt="Druid">
+                                <span class="class-text">Druid</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Specialization</label>
+                        <div id="spec1" class="spec-grid"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Race</label>
+                        <div id="race1" class="race-grid"></div>
+                    </div>
+                </div>
+
+                <div class="player-section">
+                    <div class="player-label">Player 2</div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Player Name (Optional)</label>
+                        <input type="text" id="playerName2" class="naming-input" placeholder="Enter player name..." maxlength="15">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Select Class</label>
+                        <div class="class-grid" data-player="2">
+                            <div class="class-option" data-class="Warrior">
+                                <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/war.png?v=1766427831" class="class-icon" alt="Warrior">
+                                <span class="class-text">Warrior</span>
+                            </div>
+                            <div class="class-option" data-class="Paladin">
+                                <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/pala.png?v=1766427831" class="class-icon" alt="Paladin">
+                                <span class="class-text">Paladin</span>
+                            </div>
+                            <div class="class-option" data-class="Hunter">
+                                <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/hunter.png?v=1766427832" class="class-icon" alt="Hunter">
+                                <span class="class-text">Hunter</span>
+                            </div>
+                            <div class="class-option" data-class="Rogue">
+                                <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/rogue.png?v=1766427831" class="class-icon" alt="Rogue">
+                                <span class="class-text">Rogue</span>
+                            </div>
+                            <div class="class-option" data-class="Priest">
+                                <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/priest.png?v=1766427831" class="class-icon" alt="Priest">
+                                <span class="class-text">Priest</span>
+                            </div>
+                            <div class="class-option" data-class="Shaman">
+                                <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/shaman.png?v=1766427831" class="class-icon" alt="Shaman">
+                                <span class="class-text">Shaman</span>
+                            </div>
+                            <div class="class-option" data-class="Mage">
+                                <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/mage.png?v=1766427831" class="class-icon" alt="Mage">
+                                <span class="class-text">Mage</span>
+                            </div>
+                            <div class="class-option" data-class="Warlock">
+                                <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/warlock.png?v=1766427831" class="class-icon" alt="Warlock">
+                                <span class="class-text">Warlock</span>
+                            </div>
+                            <div class="class-option" data-class="Druid">
+                                <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/druid.png?v=1766427831" class="class-icon" alt="Druid">
+                                <span class="class-text">Druid</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Specialization</label>
+                        <div id="spec2" class="spec-grid"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Race</label>
+                        <div id="race2" class="race-grid"></div>
+                    </div>
+                </div>
+            </div>
+
+            <button id="queueBtn" class="queue-btn" disabled type="button">Queue for Battle</button>
+        </div>
+
+        <div id="challengeStart" class="arena-card challenge-start-screen">
+            <div class="challenge-card-bg"></div>
+            
+            <div class="challenge-announcement">
+                <div class="challenge-icon">⏱️</div>
+                <div class="challenge-title">3-MINUTE ARENA CHALLENGE</div>
+                <div class="challenge-subtitle">Get as many wins as possible in 3 minutes!</div>
+                
+                <div class="challenge-rules">
+                    <div class="rule-item">✓ Timer starts when you click "BEGIN CHALLENGE"</div>
+                    <div class="rule-item">✓ Play matches until time expires</div>
+                    <div class="rule-item">✓ Submit your score to the leaderboard</div>
+                </div>
+                
+                <div class="your-comp">
+                    <div class="comp-label">YOUR COMPOSITION:</div>
+                    <div id="challengeComp" class="comp-display"></div>
+                </div>
+            </div>
+            
+            <button id="beginChallengeBtn" class="begin-challenge-btn" type="button">🔥 BEGIN CHALLENGE 🔥</button>
+            <button id="viewLeaderboardBtn" class="view-leaderboard-btn" type="button">📊 View Leaderboard</button>
+        </div>
+
+        <div id="queueView" class="arena-card queue-screen queue-enhanced">
+            <div class="queue-card-bg"></div>
+            <div class="queue-text">⚔️ Searching for opponents ⚔️</div>
+            <div class="queue-timer" id="queueTimer">0:00</div>
+        </div>
+
+        <div id="matchView" class="arena-card match-screen">
+            <div class="match-card-bg" id="matchBg"></div>
+            
+            <div class="match-header">
+                <div class="match-title">⚔️ MATCH FOUND! ⚔️</div>
+            </div>
+
+            <div class="arena-display">
+                <div id="arenaName" class="arena-name"></div>
+            </div>
+
+            <div class="vs-container">
+                <div class="team-display">
+                    <div class="team-header-row">
+                        <div class="team-name" id="yourTeamName"></div>
+                        <div class="team-server">Your Realm</div>
+                    </div>
+                    <div id="yourTeam"></div>
+                </div>
+                
+                <div class="vs-symbol">VS</div>
+                
+                <div class="team-display">
+                    <div class="team-header-row">
+                        <div class="team-name" id="enemyTeamName"></div>
+                        <div class="team-mmr" id="enemyMMR"></div>
+                    </div>
+                    <div id="enemyTeam"></div>
+                    <div style="text-align: center; margin-top: 15px;">
+                        <span class="team-server" id="enemyServer"></span>
+                    </div>
+                </div>
+            </div>
+
+            <button id="startFightBtn" class="start-fight-btn" type="button">⚔️ START FIGHT ⚔️</button>
+        </div>
+
+        <div id="fightView" class="arena-card fight-screen">
+            <div class="combat-card-bg" id="combatBg"></div>
+            
+            <div class="combat-header">
+                <div class="combat-arena-title" id="combatArenaTitle"></div>
+            </div>
+
+            <div class="fight-animation">
+                <div class="combat-grid" id="combatGrid"></div>
+                <div class="combat-log" id="combatLog">Combatants engage in fierce battle...</div>
+            </div>
+            <div id="questionContainer"></div>
+        </div>
+
+        <div id="resultsView" class="arena-card results-screen">
+            <div class="match-result">
+                <div id="resultTitle" class="result-title"></div>
+                <div id="mmrChange" class="mmr-change"></div>
+                <div id="mmrDisplay" class="mmr-display"></div>
+                <div id="recordDisplay" class="record-display"></div>
+            </div>
+
+            <div class="match-summary">
+                <div class="summary-title">Match Analysis</div>
+                <div id="matchSummary"></div>
+            </div>
+
+            <div class="results-buttons">
+                <button id="requeueBtn" class="reset-btn" type="button">Queue Again</button>
+                <button id="retireBtn" class="retire-btn" type="button">🏁 Retire Early</button>
+            </div>
+
+            <div class="share-section">
+                <button id="shareBtn" class="share-btn" type="button">📤 Share Result</button>
+            </div>
+        </div>
+
+        <div id="timeUpView" class="arena-card time-up-screen">
+            <div class="time-up-bg"></div>
+            
+            <div class="time-up-content">
+                <div class="time-up-icon">⏰</div>
+                <div class="time-up-title">TIME'S UP!</div>
+                <div class="time-up-subtitle">Challenge Complete</div>
+                
+                <div class="final-score">
+                    <div class="score-label">YOUR FINAL RECORD</div>
+                    <div class="score-display">
+                        <div class="score-wins"><span id="finalWins">0</span> Wins</div>
+                        <div class="score-separator">-</div>
+                        <div class="score-losses"><span id="finalLosses">0</span> Losses</div>
+                    </div>
+                    <div id="finalComp" class="score-comp"></div>
+                </div>
+                
+                <div class="submit-section">
+                    <input type="text" id="leaderboardName" class="leaderboard-input" placeholder="Enter Team Name..." maxlength="20">
+                    <button id="submitScoreBtn" class="submit-score-btn" type="button">📊 SUBMIT TO LEADERBOARD</button>
+                </div>
+                
+                <button id="playAgainBtn" class="play-again-btn" type="button">🔄 PLAY AGAIN</button>
+            </div>
+        </div>
+
+        <div id="leaderboardView" class="arena-card leaderboard-screen">
+            <div class="leaderboard-bg"></div>
+            
+            <div class="leaderboard-content">
+                <div class="leaderboard-header">
+                    <div class="leaderboard-title">🏆 ARENA LEADERBOARD 🏆</div>
+                    <div class="leaderboard-subtitle">Top 3-Minute Challenge Scores</div>
+                </div>
+                
+                <div id="yourResult" class="your-result-banner">
+                    <div class="result-banner-title">YOUR RESULT</div>
+                    <div id="yourResultContent" class="result-banner-content"></div>
+                </div>
+                
+                <div id="leaderboardList" class="leaderboard-list"></div>
+                
+                <button id="closeLeaderboardBtn" class="close-leaderboard-btn" type="button">🔄 PLAY AGAIN</button>
+            </div>
+        </div>
+
+        <!-- Question Result Modal -->
+        <div id="questionModal" class="question-modal">
+            <div class="modal-content">
+                <div id="modalResult" class="modal-result"></div>
+                <div id="modalExplanation" class="modal-explanation"></div>
+                <button id="modalContinue" class="modal-continue-btn">Continue</button>
+            </div>
+        </div>
+
+        <!-- Fixed Timer Display -->
+        <div id="timerDisplay" class="timer-display">
+            <div class="timer-label">TIME REMAINING</div>
+            <div class="timer-value" id="timerValue">5:00</div>
+        </div>
+    </div>
+</div>
+
+<!-- Load trivia questions from external file -->
+<script src="{{ 'trivia-questions.js' | asset_url }}"></script>
+
+<script>
+(function() {
+    'use strict';
+    
+    const DATA = {
+        specs: {
+            Warrior: ['Arms', 'Fury'],
+            Paladin: ['Holy'],
+            Hunter: ['Survival', 'Beast Mastery'],
+            Rogue: ['Subtlety', 'Mutilate'],
+            Priest: ['Discipline', 'Shadow', 'Holy'],
+            Shaman: ['Restoration', 'Enhancement', 'Elemental'],
+            Mage: ['Frost'],
+            Warlock: ['SL/SL', 'Affliction', 'Destruction'],
+            Druid: ['Restoration', 'Feral', 'Balance']
+        },
+        specIcons: {
+            'Arms': 'https://wow.zamimg.com/images/wow/icons/large/ability_warrior_savageblow.jpg',
+            'Fury': 'https://wow.zamimg.com/images/wow/icons/large/ability_warrior_innerrage.jpg',
+            'Holy': 'https://wow.zamimg.com/images/wow/icons/large/spell_holy_holybolt.jpg',
+            'Survival': 'https://wow.zamimg.com/images/wow/icons/large/ability_hunter_swiftstrike.jpg',
+            'Beast Mastery': 'https://wow.zamimg.com/images/wow/icons/large/ability_hunter_beasttaming.jpg',
+            'Subtlety': 'https://wow.zamimg.com/images/wow/icons/large/ability_stealth.jpg',
+            'Mutilate': 'https://wow.zamimg.com/images/wow/icons/large/ability_rogue_shadowstrikes.jpg',
+            'Discipline': 'https://wow.zamimg.com/images/wow/icons/large/spell_holy_wordfortitude.jpg',
+            'Shadow': 'https://wow.zamimg.com/images/wow/icons/large/spell_shadow_shadowwordpain.jpg',
+            'Restoration': 'https://wow.zamimg.com/images/wow/icons/large/spell_nature_magicimmunity.jpg',
+            'Restoration-Druid': 'https://wow.zamimg.com/images/wow/icons/large/spell_nature_healingtouch.jpg',
+            'Enhancement': 'https://wow.zamimg.com/images/wow/icons/large/spell_nature_lightningshield.jpg',
+            'Elemental': 'https://wow.zamimg.com/images/wow/icons/large/spell_lightning_lightningbolt01.jpg',
+            'Frost': 'https://wow.zamimg.com/images/wow/icons/large/spell_frost_frostbolt02.jpg',
+            'SL/SL': 'https://wow.zamimg.com/images/wow/icons/large/spell_shadow_gathershadows.jpg',
+            'Affliction': 'https://wow.zamimg.com/images/wow/icons/large/spell_shadow_unstableaffliction_3.jpg',
+            'Destruction': 'https://wow.zamimg.com/images/wow/icons/large/spell_shadow_rainoffire.jpg',
+            'Feral': 'https://wow.zamimg.com/images/wow/icons/large/classic_ability_druid_demoralizingroar.jpg',
+            'Balance': 'https://wow.zamimg.com/images/wow/icons/large/spell_nature_starfall.jpg'
+        },
+        
+        getSpecIcon(className, specName) {
+            if (specName === 'Restoration' && className === 'Druid') {
+                return this.specIcons['Restoration-Druid'];
+            }
+            return this.specIcons[specName] || this.specIcons['Frost'];
+        },
+        races: {
+            Warrior: { Alliance: ['Human', 'Dwarf', 'Night Elf', 'Gnome', 'Draenei'], Horde: ['Orc', 'Undead', 'Tauren', 'Troll'] },
+            Paladin: { Alliance: ['Human', 'Dwarf', 'Draenei'], Horde: ['Blood Elf'] },
+            Hunter: { Alliance: ['Dwarf', 'Night Elf', 'Draenei'], Horde: ['Orc', 'Tauren', 'Troll', 'Blood Elf'] },
+            Rogue: { Alliance: ['Human', 'Dwarf', 'Night Elf', 'Gnome'], Horde: ['Orc', 'Undead', 'Troll', 'Blood Elf'] },
+            Priest: { Alliance: ['Human', 'Dwarf', 'Night Elf', 'Draenei'], Horde: ['Undead', 'Troll', 'Blood Elf'] },
+            Shaman: { Alliance: ['Draenei'], Horde: ['Orc', 'Tauren', 'Troll'] },
+            Mage: { Alliance: ['Human', 'Gnome', 'Draenei'], Horde: ['Undead', 'Troll', 'Blood Elf'] },
+            Warlock: { Alliance: ['Human', 'Gnome'], Horde: ['Orc', 'Undead', 'Blood Elf'] },
+            Druid: { Alliance: ['Night Elf'], Horde: ['Tauren'] }
+        },
+        raceIcons: {
+            Orc: 'https://wow.zamimg.com/images/wow/icons/medium/race_orc_male.jpg',
+            Troll: 'https://wow.zamimg.com/images/wow/icons/medium/race_troll_male.jpg',
+            Undead: 'https://wow.zamimg.com/images/wow/icons/medium/race_scourge_male.jpg',
+            Tauren: 'https://wow.zamimg.com/images/wow/icons/medium/race_tauren_male.jpg',
+            'Blood Elf': 'https://wow.zamimg.com/images/wow/icons/medium/race_bloodelf_male.jpg',
+            Human: 'https://wow.zamimg.com/images/wow/icons/medium/race_human_female.jpg',
+            Dwarf: 'https://wow.zamimg.com/images/wow/icons/medium/race_dwarf_male.jpg',
+            'Night Elf': 'https://wow.zamimg.com/images/wow/icons/medium/race_nightelf_male.jpg',
+            Gnome: 'https://wow.zamimg.com/images/wow/icons/medium/race_gnome_female.jpg',
+            Draenei: 'https://wow.zamimg.com/images/wow/icons/medium/race_draenei_female.jpg'
+        },
+        fantasyNames: {
+            'Orc-Warrior': ['Grommash', 'Kargath', 'Durotan', 'Orgrim', 'Nazgrel', 'Thrall', 'Garrosh', 'Saurfang'],
+            'Orc-Shaman': ['Drek\'thar', 'Rehgar', 'Nobundo', 'Farseer', 'Akama', 'Ner\'zhul', 'Stormcaller'],
+            'Orc-Warlock': ['Gul\'dan', 'Teron', 'Blackhand', 'Kilrogg', 'Rend', 'Felwhisper'],
+            'Orc-Hunter': ['Rexxar', 'Hemet', 'Rokhan', 'Beastlord', 'Bloodaxe'],
+            'Orc-Rogue': ['Garona', 'Shattered', 'Backstab', 'Vanish', 'Shadowblade'],
+            'Troll-Priest': ['Shadowmend', 'Voljin', 'Zanzil', 'Hexlord', 'Darkspear', 'Shadowcaster'],
+            'Troll-Shaman': ['Zulaman', 'Jindo', 'Grimstotem', 'Earthfury', 'Stormrage'],
+            'Troll-Hunter': ['Zul\'jin', 'Bloodscalp', 'Amani', 'Headhunter', 'Swiftarrow'],
+            'Troll-Rogue': ['Shadowstep', 'Venomtip', 'Backstab', 'Garotte', 'Swiftstrike'],
+            'Troll-Mage': ['Frostbolt', 'Hexweaver', 'Voodoo', 'Jinx', 'Spiritcaller'],
+            'Undead-Priest': ['Benedictus', 'Dreadwhisper', 'Shadowfiend', 'Plaguemaw', 'Deathspeaker'],
+            'Undead-Warlock': ['Darkmaster', 'Soulreaper', 'Felwhisper', 'Plagueborn', 'Shadowbinder'],
+            'Undead-Mage': ['Kelthuzad', 'Frostwhisper', 'Iceveins', 'Necromancer', 'Frostmage'],
+            'Undead-Rogue': ['Deathstalker', 'Shadowblade', 'Poisontip', 'Silencer', 'Graveblade'],
+            'Undead-Warrior': ['Deathknight', 'Boneguard', 'Gravewarden', 'Skullcrusher', 'Plaguebringer'],
+            'Tauren-Warrior': ['Cairne', 'Ironhorn', 'Earthguard', 'Boulderaxe', 'Stonehoof'],
+            'Tauren-Druid': ['Hamuul', 'Wildmane', 'Stonehoof', 'Natureguard', 'Earthmother'],
+            'Tauren-Shaman': ['Thunderhorn', 'Earthmother', 'Stormcaller', 'Rumblehorn', 'Totemcarver'],
+            'Tauren-Hunter': ['Highmountain', 'Beasttracker', 'Longshot', 'Swiftarrow', 'Plainsrunner'],
+            'Blood Elf-Paladin': ['Bloodknight', 'Sunfury', 'Magistrix', 'Dawnblade', 'Lightbringer'],
+            'Blood Elf-Mage': ['Sunstrider', 'Firewing', 'Spellweaver', 'Arcanestar', 'Flamecaller'],
+            'Blood Elf-Priest': ['Lightbringer', 'Velen', 'Solarian', 'Dawnmender', 'Holystar'],
+            'Blood Elf-Warlock': ['Felblood', 'Shadowsun', 'Demonbinder', 'Darkwhisper', 'Soulfire'],
+            'Blood Elf-Hunter': ['Hawkstrider', 'Sunfury', 'Sharpshot', 'Swiftbow', 'Flamearrow'],
+            'Blood Elf-Rogue': ['Shadowstrike', 'Silverblade', 'Quickstep', 'Backstab', 'Nightblade'],
+            'Human-Warrior': ['Varian', 'Stormwind', 'Lionheart', 'Ironforge', 'Battleborn'],
+            'Human-Paladin': ['Tirion', 'Uther', 'Lightbringer', 'Ashbringer', 'Holyblade'],
+            'Human-Priest': ['Benedictus', 'Lightwell', 'Holyfire', 'Faithkeeper', 'Dawnmender'],
+            'Human-Mage': ['Jaina', 'Khadgar', 'Archmage', 'Frostfire', 'Spellweaver'],
+            'Human-Warlock': ['Darkmaster', 'Felguard', 'Soulstone', 'Corruptor', 'Shadowbinder'],
+            'Human-Rogue': ['Mathias', 'Shadowstep', 'Vanish', 'Coldblood', 'Quickblade'],
+            'Dwarf-Warrior': ['Ironforge', 'Bronzebeard', 'Mountainking', 'Battlehammer', 'Stoneborn'],
+            'Dwarf-Paladin': ['Lightforge', 'Hammerfall', 'Justicar', 'Stoneform', 'Ironfist'],
+            'Dwarf-Hunter': ['Rifleman', 'Mountaineer', 'Gryphonrider', 'Longbeard', 'Ironsight'],
+            'Dwarf-Priest': ['Stonekeeper', 'Earthmender', 'Holystone', 'Lightbeard', 'Faithkeeper'],
+            'Dwarf-Rogue': ['Shadowforge', 'Darkiron', 'Backstab', 'Silencer', 'Quickstep'],
+            'Night Elf-Warrior': ['Sentinel', 'Moonguard', 'Starshadow', 'Nightblade', 'Silvermoon'],
+            'Night Elf-Druid': ['Malfurion', 'Staghelm', 'Moonwhisper', 'Wildgrowth', 'Starfall'],
+            'Night Elf-Hunter': ['Shadowleaf', 'Nightstalker', 'Moonsong', 'Swiftarrow', 'Starbow'],
+            'Night Elf-Priest': ['Starshimmer', 'Moonpriest', 'Elune', 'Lightweaver', 'Dawnstar'],
+            'Night Elf-Rogue': ['Shadowmeld', 'Nightblade', 'Vanish', 'Moonstalker', 'Darkstep'],
+            'Gnome-Warrior': ['Tinker', 'Geargrinder', 'Mechanized', 'Ironbolt', 'Sparkfuse'],
+            'Gnome-Mage': ['Millhouse', 'Sparkfizz', 'Arcaneblast', 'Frostgnome', 'Firecracker'],
+            'Gnome-Warlock': ['Wilfred', 'Felgnome', 'Doomwhisper', 'Impsummoner', 'Shadowspark'],
+            'Gnome-Rogue': ['Shortstack', 'Quickstep', 'Backstab', 'Escapeartist', 'Tinyblade'],
+            'Draenei-Warrior': ['Vindicator', 'Lightguard', 'Exodar', 'Crystalforged', 'Defender'],
+            'Draenei-Paladin': ['Maraad', 'Lightbringer', 'Defender', 'Holyplate', 'Crystalblade'],
+            'Draenei-Priest': ['Prophet', 'Lightweaver', 'Velen', 'Holystar', 'Crystalmender'],
+            'Draenei-Shaman': ['Farseer', 'Nobundo', 'Earthmender', 'Stormcaller', 'Crystaltotem'],
+            'Draenei-Hunter': ['Tracker', 'Beastcaller', 'Rangari', 'Bowmaster', 'Crystalarrow'],
+            'Draenei-Mage': ['Crystalweaver', 'Arcanist', 'Lightmage', 'Spellbinder', 'Starweaver']
+        },
+        comps: [
+            { p1: 'Rogue', s1: 'Subtlety', p2: 'Mage', s2: 'Frost' },
+            { p1: 'Rogue', s1: 'Subtlety', p2: 'Priest', s2: 'Discipline' },
+            { p1: 'Warlock', s1: 'Affliction', p2: 'Priest', s2: 'Discipline' },
+            { p1: 'Warlock', s1: 'Affliction', p2: 'Druid', s2: 'Restoration' },
+            { p1: 'Warrior', s1: 'Arms', p2: 'Druid', s2: 'Restoration' },
+            { p1: 'Warrior', s1: 'Arms', p2: 'Priest', s2: 'Discipline' },
+            { p1: 'Rogue', s1: 'Subtlety', p2: 'Druid', s2: 'Restoration' },
+            { p1: 'Hunter', s1: 'Beast Mastery', p2: 'Paladin', s2: 'Holy' },
+            { p1: 'Warlock', s1: 'Affliction', p2: 'Rogue', s2: 'Subtlety' },
+            { p1: 'Priest', s1: 'Shadow', p2: 'Rogue', s2: 'Subtlety' }
+        ],
+        arenas: [
+            { 
+                name: 'Ruins of Lordaeron',
+                image: 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/OIP.webp?v=1766558961',
+                layout: 'CENTRAL_PILLAR',
+                description: 'Central tomb pillar + scattered small pillars. Medium-open layout.',
+                strategy: 'Control central tomb for drinks. Small pillars for quick LOS. Harder to hide, easier to reset. Druid drinks at tomb, Rogue peels. Mage controls center.'
+            },
+            { 
+                name: "Blade's Edge Arena",
+                image: 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/edge_1.webp?v=1766559329',
+                layout: 'BRIDGE',
+                description: 'Bridge with side pillars offering multiple elevation levels and positioning options.',
+                strategy: 'Bridge center is high-traffic kill zone with limited line-of-sight. Use side pillars for defensive positioning. Control high ground for map awareness. Coordinate pillar rotations with your partner.'
+            },
+            { 
+                name: 'Nagrand Arena',
+                image: 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/OIP_1.webp?v=1766559348',
+                layout: 'FOUR_PILLARS',
+                description: 'Four pillars in center square. Very open arena.',
+                strategy: 'Pillar dance between 4 center pillars. Very open = hard to drink. Coordinate pillar control. Druid drinks at far pillar (watch for gaps). LoS game critical.'
+            }
+        ],
+        servers: ['Tichondrius', 'Blackrock', 'Illidan', 'Area 52', 'Sargeras', 'Mal\'Ganis', 'Stormrage', 'Bleeding Hollow', 'Kel\'Thuzad', 'Frostmourne', 'Barthilas', 'Ragnaros', 'Nemesis', 'Tarren Mill', 'Kazzak', 'Silvermoon'],
+        classIcons: {
+            Warrior: 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/war.png?v=1766427831',
+            Paladin: 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/pala.png?v=1766427831',
+            Hunter: 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/hunter.png?v=1766427832',
+            Rogue: 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/rogue.png?v=1766427831',
+            Priest: 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/priest.png?v=1766427831',
+            Shaman: 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/shaman.png?v=1766427831',
+            Mage: 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/mage.png?v=1766427831',
+            Warlock: 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/warlock.png?v=1766427831',
+            Druid: 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/druid.png?v=1766427831'
+        },
+        trinkets: {
+            Alliance: 'https://wow.zamimg.com/images/wow/icons/large/inv_jewelry_trinketpvp_01.jpg',
+            Horde: 'https://wow.zamimg.com/images/wow/icons/large/inv_jewelry_trinketpvp_02.jpg'
+        },
+        resourceTypes: {
+            Warrior: 'rage',
+            Paladin: 'mana',
+            Hunter: 'mana',
+            Rogue: 'energy',
+            Priest: 'mana',
+            Shaman: 'mana',
+            Mage: 'mana',
+            Warlock: 'mana',
+            Druid: 'mana'
+        },
+        combatActions: [
+            "{p1} strikes {p2} with a devastating blow!",
+            "{p1} and {p2} exchange fierce attacks!",
+            "{p1} pressures {p2} relentlessly!",
+            "{p1} creates distance from {p2}!",
+            "{p1} counters {p2}'s offensive!",
+            "Intense combat erupts between {p1} and {p2}!",
+            "{p1} gains positional advantage over {p2}!",
+            "{p1} applies crowd control on {p2}!",
+            "{p1} breaks free and retaliates against {p2}!",
+            "{p1} overwhelms {p2} with sustained pressure!",
+            "{p1} forces {p2} into defensive positioning!",
+            "Both combatants trade damage aggressively!",
+            "{p1} executes a perfect combo on {p2}!",
+            "{p1} successfully kites {p2} around the pillar!",
+            "{p1} resets positioning away from {p2}!",
+            "{p1} interrupts {p2}'s recovery!",
+            "{p1} capitalizes on {p2}'s vulnerability!",
+            "{p1} and {p2} engage in fierce melee combat!",
+            "{p1} maintains control over {p2}!",
+            "{p1} secures tactical advantage against {p2}!"
+        ]
+    };
+
+    function generateFantasyName(race, cls) {
+        const key = `${race}-${cls}`;
+        const names = DATA.fantasyNames[key];
+        
+        if (names && names.length > 0) {
+            return names[Math.floor(Math.random() * names.length)];
+        }
+        
+        const fallbackNames = ['Shadowblade', 'Stormfury', 'Ironheart', 'Swiftblade', 'Darkwhisper', 
+                               'Flamecaller', 'Frostborn', 'Earthshaker', 'Lightbringer', 'Bloodaxe'];
+        return fallbackNames[Math.floor(Math.random() * fallbackNames.length)];
+    }
+
+    let team = { faction: null, teamName: '', p1: { class: null, spec: null, race: null, name: '' }, p2: { class: null, spec: null, race: null, name: '' } };
+    const CLASS_ICONS = {
+        'Warrior': 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/war.png?v=1766427831',
+        'Paladin': 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/pala.png?v=1766427831',
+        'Hunter': 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/hunter.png?v=1766427832',
+        'Rogue': 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/rogue.png?v=1766427831',
+        'Priest': 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/priest.png?v=1766427831',
+        'Shaman': 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/shaman.png?v=1766427831',
+        'Mage': 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/mage.png?v=1766427831',
+        'Warlock': 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/warlock.png?v=1766427831',
+        'Druid': 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/druid.png?v=1766427831'
+    };
+    
+    const FACTION_ICONS = {
+        'Alliance': 'https://wow.zamimg.com/images/wow/icons/large/inv_bannerpvp_02.jpg',
+        'Horde': 'https://wow.zamimg.com/images/wow/icons/large/inv_bannerpvp_01.jpg'
+    };
+
+    let savedTeam = null;
+    let enemy = null;
+    let currentArena = null;
+    let currentMMR = 1500;
+    let wins = 0;
+    let losses = 0;
+    let questions = [];
+    let currentQuestion = 0;
+    let correctAnswers = 0;
+    let matchData = {};
+    let combatIntervals = [];
+    
+    // CHALLENGE TIMER & LEADERBOARD SYSTEM
+    let challengeTimer = null;
+    let timeRemaining = 180; // 3 minutes in seconds
+    let sessionWins = 0;
+    let sessionLosses = 0;
+    let challengeActive = false;
+    let timerPaused = false;
+    
+    // Format time as MM:SS
+    function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+    
+    // Update timer display
+    function updateTimerDisplay() {
+        const timerValue = document.getElementById('timerValue');
+        timerValue.textContent = formatTime(timeRemaining);
+        
+        // Add warning/critical states
+        timerValue.classList.remove('warning', 'critical');
+        if (timeRemaining <= 60) {
+            timerValue.classList.add('critical');
+        } else if (timeRemaining <= 120) {
+            timerValue.classList.add('warning');
+        }
+    }
+    
+    // Start countdown timer
+    function startTimer() {
+        challengeActive = true;
+        timeRemaining = 180;
+        sessionWins = 0;
+        sessionLosses = 0;
+        timerPaused = false;
+        
+        document.getElementById('timerDisplay').style.display = 'block';
+        updateTimerDisplay();
+        
+        challengeTimer = setInterval(() => {
+            if (!timerPaused) {
+                timeRemaining--;
+                updateTimerDisplay();
+                
+                if (timeRemaining <= 0) {
+                    endChallenge();
+                }
+            }
+        }, 1000);
+    }
+    
+    // Pause timer (during queue)
+    function pauseTimer() {
+        timerPaused = true;
+    }
+    
+    // Resume timer (during match)
+    function resumeTimer() {
+        timerPaused = false;
+    }
+    
+    // Stop timer
+    function stopTimer() {
+        if (challengeTimer) {
+            clearInterval(challengeTimer);
+            challengeTimer = null;
+        }
+        document.getElementById('timerDisplay').style.display = 'none';
+        challengeActive = false;
+        timerPaused = false;
+    }
+    
+    // End challenge when time runs out
+    async function endChallenge() {
+        stopTimer();
+        
+        // Auto-submit to leaderboard
+        await saveToLeaderboard(team, sessionWins, sessionLosses, currentMMR);
+        
+        // Hide all other screens
+        document.getElementById('queueView').style.display = 'none';
+        document.getElementById('matchView').style.display = 'none';
+        document.getElementById('fightView').style.display = 'none';
+        document.getElementById('resultsView').style.display = 'none';
+        
+        // Show user's result banner
+        const p1Icon = CLASS_ICONS[team.p1.class] || '';
+        const p2Icon = CLASS_ICONS[team.p2.class] || '';
+        const factionIcon = FACTION_ICONS[team.faction] || '';
+        
+        document.getElementById('yourResultContent').innerHTML = `
+            <div class="banner-team">
+                <img src="${factionIcon}" class="banner-faction-icon" alt="${team.faction}">
+                <div class="banner-team-name">${team.teamName}</div>
+            </div>
+            <div class="banner-comp">
+                <img src="${p1Icon}" class="banner-class-icon" alt="${team.p1.class}">
+                <span class="banner-player-name">${team.p1.name}</span>
+                <img src="${p2Icon}" class="banner-class-icon" alt="${team.p2.class}">
+                <span class="banner-player-name">${team.p2.name}</span>
+            </div>
+            <div class="banner-stats">
+                <div class="banner-record">
+                    <span class="banner-wins">${sessionWins}</span> - <span class="banner-losses">${sessionLosses}</span>
+                </div>
+                <div class="banner-mmr">${currentMMR} MMR</div>
+            </div>
+        `;
+        
+        // Show leaderboard
+        document.getElementById('leaderboardView').style.display = 'block';
+        await displayLeaderboard();
+        
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    
+    // Leaderboard functions with Google Sheets backend
+    const LEADERBOARD_API = 'https://script.google.com/macros/s/AKfycbwbeCGtBso1GfqXfYFI_OHR8xts1cjdvX0djIwWIx3ZqqpO_z2mShlcVtUkMRVQo0LUrQ/exec';
+    
+    async function getLeaderboard() {
+        try {
+            const response = await fetch(LEADERBOARD_API);
+            const data = await response.json();
+            
+            if (data.success) {
+                // Cache in localStorage as backup
+                localStorage.setItem('tbc_arena_leaderboard_cache', JSON.stringify(data.leaderboard));
+                return data.leaderboard;
+            } else {
+                console.error('Leaderboard fetch error:', data.error);
+                // Fallback to cache
+                const cache = localStorage.getItem('tbc_arena_leaderboard_cache');
+                return cache ? JSON.parse(cache) : [];
+            }
+        } catch (error) {
+            console.error('Leaderboard network error:', error);
+            // Fallback to cache
+            const cache = localStorage.getItem('tbc_arena_leaderboard_cache');
+            return cache ? JSON.parse(cache) : [];
+        }
+    }
+    
+    async function saveToLeaderboard(teamData, wins, losses, finalMMR) {
+        const entry = {
+            teamName: teamData.teamName,
+            faction: teamData.faction,
+            p1Class: teamData.p1.class,
+            p1Name: teamData.p1.name,
+            p2Class: teamData.p2.class,
+            p2Name: teamData.p2.name,
+            wins: wins,
+            losses: losses,
+            mmr: finalMMR,
+            timestamp: new Date().toISOString()
+        };
+        
+        try {
+            const response = await fetch(LEADERBOARD_API, {
+                method: 'POST',
+                mode: 'no-cors', // Google Apps Script requires no-cors
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(entry)
+            });
+            
+            // no-cors doesn't give us response, so we'll fetch leaderboard to verify
+            console.log('Score submitted successfully');
+            
+            // Also save to localStorage cache
+            const cache = localStorage.getItem('tbc_arena_leaderboard_cache');
+            let leaderboard = cache ? JSON.parse(cache) : [];
+            leaderboard.push(entry);
+            leaderboard.sort((a, b) => {
+                if (b.wins !== a.wins) return b.wins - a.wins;
+                if (a.losses !== b.losses) return a.losses - b.losses;
+                return b.mmr - a.mmr; // Higher MMR wins ties
+            });
+            localStorage.setItem('tbc_arena_leaderboard_cache', JSON.stringify(leaderboard.slice(0, 50)));
+            
+            return true;
+        } catch (error) {
+            console.error('Error submitting score:', error);
+            // Save to localStorage as fallback
+            const cache = localStorage.getItem('tbc_arena_leaderboard_cache');
+            let leaderboard = cache ? JSON.parse(cache) : [];
+            leaderboard.push(entry);
+            leaderboard.sort((a, b) => {
+                if (b.wins !== a.wins) return b.wins - a.wins;
+                if (a.losses !== b.losses) return a.losses - b.losses;
+                return b.mmr - a.mmr; // Higher MMR wins ties
+            });
+            localStorage.setItem('tbc_arena_leaderboard_cache', JSON.stringify(leaderboard.slice(0, 50)));
+            return false;
+        }
+    }
+    
+    async function displayLeaderboard() {
+        const listEl = document.getElementById('leaderboardList');
+        
+        // Show loading state
+        listEl.innerHTML = '<div class="no-scores loading">Loading leaderboard...</div>';
+        
+        const leaderboard = await getLeaderboard();
+        
+        if (leaderboard.length === 0) {
+            listEl.innerHTML = '<div class="no-scores">No scores yet. Be the first!</div>';
+            return;
+        }
+        
+        listEl.innerHTML = leaderboard.slice(0, 20).map((entry, index) => {
+            const rank = index + 1;
+            const rankClass = rank === 1 ? 'top-1' : rank === 2 ? 'top-2' : rank === 3 ? 'top-3' : '';
+            const entryClass = rank === 1 ? 'top-1' : rank === 2 ? 'top-2' : rank === 3 ? 'top-3' : '';
+            
+            const p1Icon = CLASS_ICONS[entry.p1Class] || '';
+            const p2Icon = CLASS_ICONS[entry.p2Class] || '';
+            const factionIcon = FACTION_ICONS[entry.faction] || '';
+            
+            return `
+                <div class="leaderboard-entry ${entryClass}">
+                    <div class="entry-rank ${rankClass}">#${rank}</div>
+                    <div class="entry-info">
+                        <div class="entry-name">${entry.teamName}</div>
+                        <div class="entry-team-icons">
+                            <img src="${factionIcon}" class="entry-faction-icon" alt="${entry.faction}">
+                            <img src="${p1Icon}" class="entry-class-icon" alt="${entry.p1Class}">
+                            <span class="entry-player-name">${entry.p1Name}</span>
+                            <img src="${p2Icon}" class="entry-class-icon" alt="${entry.p2Class}">
+                            <span class="entry-player-name">${entry.p2Name}</span>
+                        </div>
+                    </div>
+                    <div class="entry-stats">
+                        <div class="entry-record">
+                            <span class="entry-wins">${entry.wins}</span> - <span class="entry-losses">${entry.losses}</span>
+                        </div>
+                        <div class="entry-mmr">${entry.mmr} MMR</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    // Record match result for challenge
+    function recordMatchResult(isWin) {
+        if (challengeActive) {
+            if (isWin) {
+                sessionWins++;
+            } else {
+                sessionLosses++;
+            }
+        }
+    }
+
+    document.querySelectorAll('.faction-option').forEach(opt => {
+        opt.addEventListener('click', function() {
+            document.querySelectorAll('.faction-option').forEach(o => o.classList.remove('active'));
+            this.classList.add('active');
+            team.faction = this.dataset.faction;
+            
+            team.p1.race = null;
+            team.p2.race = null;
+            document.getElementById('race1').innerHTML = '';
+            document.getElementById('race2').innerHTML = '';
+            
+            if (team.p1.class) updateRaces(1);
+            if (team.p2.class) updateRaces(2);
+            
+            checkReady();
+        });
+    });
+
+    document.querySelectorAll('.class-option').forEach(opt => {
+        opt.addEventListener('click', function() {
+            const p = this.closest('[data-player]').dataset.player;
+            const cls = this.dataset.class;
+            
+            document.querySelectorAll(`[data-player="${p}"] .class-option`).forEach(o => o.classList.remove('active'));
+            this.classList.add('active');
+            
+            team[`p${p}`].class = cls;
+            
+            updateSpecs(p, cls);
+            
+            team[`p${p}`].spec = null;
+            team[`p${p}`].race = null;
+            
+            if (team.faction) updateRaces(p);
+            
+            checkReady();
+        });
+    });
+
+    function updateSpecs(p, cls) {
+        const div = document.getElementById(`spec${p}`);
+        div.innerHTML = '';
+        
+        DATA.specs[cls].forEach(s => {
+            const el = document.createElement('div');
+            el.className = 'spec-option';
+            el.innerHTML = `<img src="${DATA.getSpecIcon(cls, s)}" alt="${s}" class="spec-icon"><div class="spec-text">${s}</div>`;
+            el.addEventListener('click', function() {
+                div.querySelectorAll('.spec-option').forEach(x => x.classList.remove('active'));
+                this.classList.add('active');
+                team[`p${p}`].spec = s;
+                checkReady();
+            });
+            div.appendChild(el);
+        });
+    }
+
+    function updateRaces(p) {
+        const div = document.getElementById(`race${p}`);
+        div.innerHTML = '';
+        
+        const availableRaces = DATA.races[team[`p${p}`].class][team.faction] || [];
+        
+        availableRaces.forEach(r => {
+            const el = document.createElement('div');
+            el.className = 'race-option';
+            el.innerHTML = `<img src="${DATA.raceIcons[r]}" alt="${r}" class="race-icon"><div class="race-name">${r}</div>`;
+            el.addEventListener('click', function() {
+                div.querySelectorAll('.race-option').forEach(x => x.classList.remove('active'));
+                this.classList.add('active');
+                team[`p${p}`].race = r;
+                checkReady();
+            });
+            div.appendChild(el);
+        });
+    }
+
+    function checkReady() {
+        const isReady = team.faction && 
+                       team.p1.class && team.p1.spec && team.p1.race && 
+                       team.p2.class && team.p2.spec && team.p2.race;
+        document.getElementById('queueBtn').disabled = !isReady;
+    }
+
+    document.getElementById('queueBtn').addEventListener('click', function() {
+        team.teamName = document.getElementById('teamName').value.trim() || 'Your Team';
+        team.p1.name = document.getElementById('playerName1').value.trim() || generateFantasyName(team.p1.race, team.p1.class);
+        team.p2.name = document.getElementById('playerName2').value.trim() || generateFantasyName(team.p2.race, team.p2.class);
+        
+        savedTeam = JSON.parse(JSON.stringify(team));
+        
+        // Show challenge start screen instead of going straight to queue
+        document.getElementById('builderView').style.display = 'none';
+        document.getElementById('challengeStart').style.display = 'block';
+        document.getElementById('challengeComp').textContent = `${team.p1.class} / ${team.p2.class}`;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    
+    // Begin Challenge button
+    document.getElementById('beginChallengeBtn').addEventListener('click', function() {
+        startTimer();
+        startQueue();
+    });
+    
+    // View Leaderboard button (from challenge start)
+    document.getElementById('viewLeaderboardBtn').addEventListener('click', async function() {
+        document.getElementById('challengeStart').style.display = 'none';
+        document.getElementById('leaderboardView').style.display = 'block';
+        await displayLeaderboard();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    
+    // Close Leaderboard button
+    document.getElementById('closeLeaderboardBtn').addEventListener('click', function() {
+        document.getElementById('leaderboardView').style.display = 'none';
+        document.getElementById('challengeStart').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    
+    // Submit Score button
+    // Close Leaderboard button - restart challenge
+    document.getElementById('closeLeaderboardBtn').addEventListener('click', function() {
+        document.getElementById('leaderboardView').style.display = 'none';
+        document.getElementById('challengeStart').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    function startQueue() {
+        // Pause timer during queue
+        if (challengeActive) {
+            pauseTimer();
+        }
+        
+        document.getElementById('builderView').style.display = 'none';
+        document.getElementById('challengeStart').style.display = 'none';
+        document.getElementById('queueView').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        let seconds = 0;
+        const target = Math.floor(Math.random() * 8) + 3;
+        
+        const timer = setInterval(() => {
+            seconds++;
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            document.getElementById('queueTimer').textContent = `${mins}:${secs.toString().padStart(2,'0')}`;
+            
+            if (seconds >= target) {
+                clearInterval(timer);
+                setTimeout(() => showMatch(), 500);
+            }
+        }, 1000);
+    }
+
+    function showMatch() {
+        // Resume timer when match starts
+        if (challengeActive) {
+            resumeTimer();
+        }
+        
+        document.getElementById('queueView').style.display = 'none';
+        document.getElementById('matchView').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        currentArena = DATA.arenas[Math.floor(Math.random() * DATA.arenas.length)];
+        document.getElementById('arenaName').textContent = currentArena.name;
+        document.getElementById('matchBg').style.backgroundImage = `url('${currentArena.image}')`;
+        
+        let ec;
+        if (Math.random() < 0.20) {
+            ec = {
+                p1: team.p1.class,
+                s1: team.p1.spec,
+                p2: team.p2.class,
+                s2: team.p2.spec
+            };
+        } else {
+            ec = DATA.comps[Math.floor(Math.random() * DATA.comps.length)];
+        }
+        const ef = ['Alliance', 'Horde'][Math.floor(Math.random() * 2)];
+        const races1 = DATA.races[ec.p1][ef] || DATA.races[ec.p1]['Alliance'];
+        const races2 = DATA.races[ec.p2][ef] || DATA.races[ec.p2]['Alliance'];
+        const er1 = races1[Math.floor(Math.random() * races1.length)];
+        const er2 = races2[Math.floor(Math.random() * races2.length)];
+        const enemyMMR = currentMMR + Math.floor(Math.random() * 200) - 100;
+        const enemyServer = DATA.servers[Math.floor(Math.random() * DATA.servers.length)];
+        
+        enemy = { 
+            p1: ec.p1, s1: ec.s1, r1: er1, n1: generateFantasyName(er1, ec.p1), 
+            p2: ec.p2, s2: ec.s2, r2: er2, n2: generateFantasyName(er2, ec.p2),
+            mmr: enemyMMR,
+            server: enemyServer,
+            faction: ef
+        };
+        
+        document.getElementById('yourTeamName').textContent = team.teamName;
+        document.getElementById('yourTeam').innerHTML = `
+            <div class="player-display">
+                <div class="player-icons">
+                    <img src="${DATA.classIcons[team.p1.class]}" class="class-icon" alt="${team.p1.class}">
+                    <img src="${DATA.getSpecIcon(team.p1.class, team.p1.spec)}" class="spec-icon" alt="${team.p1.spec}">
+                    <img src="${DATA.raceIcons[team.p1.race]}" class="race-icon" alt="${team.p1.race}">
+                </div>
+                <div class="player-details">
+                    <div class="player-name">Level 70 ${team.p1.name}</div>
+                    <div class="player-info">${team.p1.spec} ${team.p1.class}</div>
+                </div>
+            </div>
+            <div class="player-display">
+                <div class="player-icons">
+                    <img src="${DATA.classIcons[team.p2.class]}" class="class-icon" alt="${team.p2.class}">
+                    <img src="${DATA.getSpecIcon(team.p2.class, team.p2.spec)}" class="spec-icon" alt="${team.p2.spec}">
+                    <img src="${DATA.raceIcons[team.p2.race]}" class="race-icon" alt="${team.p2.race}">
+                </div>
+                <div class="player-details">
+                    <div class="player-name">Level 70 ${team.p2.name}</div>
+                    <div class="player-info">${team.p2.spec} ${team.p2.class}</div>
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('enemyTeamName').textContent = `${enemy.p1}/${enemy.p2}`;
+        document.getElementById('enemyMMR').textContent = `${enemy.mmr} MMR`;
+        document.getElementById('enemyServer').textContent = enemy.server;
+        document.getElementById('enemyTeam').innerHTML = `
+            <div class="player-display">
+                <div class="player-icons">
+                    <img src="${DATA.classIcons[enemy.p1]}" class="class-icon" alt="${enemy.p1}">
+                    <img src="${DATA.getSpecIcon(enemy.p1, enemy.s1)}" class="spec-icon" alt="${enemy.s1}">
+                    <img src="${DATA.raceIcons[enemy.r1]}" class="race-icon" alt="${enemy.r1}">
+                </div>
+                <div class="player-details">
+                    <div class="player-name">Level 70 ${enemy.n1}</div>
+                    <div class="player-info">${enemy.s1} ${enemy.p1}</div>
+                </div>
+            </div>
+            <div class="player-display">
+                <div class="player-icons">
+                    <img src="${DATA.classIcons[enemy.p2]}" class="class-icon" alt="${enemy.p2}">
+                    <img src="${DATA.getSpecIcon(enemy.p2, enemy.s2)}" class="spec-icon" alt="${enemy.s2}">
+                    <img src="${DATA.raceIcons[enemy.r2]}" class="race-icon" alt="${enemy.r2}">
+                </div>
+                <div class="player-details">
+                    <div class="player-name">Level 70 ${enemy.n2}</div>
+                    <div class="player-info">${enemy.s2} ${enemy.p2}</div>
+                </div>
+            </div>
+        `;
+        
+    }
+
+
+    // Filter questions based on classes in the match
+    function selectMatchupQuestions() {
+        if (!window.TRIVIA_QUESTIONS || window.TRIVIA_QUESTIONS.length === 0) {
+            return [];
+        }
+        
+        // Get all 4 classes in the match
+        const matchClasses = [
+            team.p1.class,
+            team.p2.class,
+            enemy.p1,
+            enemy.p2
+        ];
+        
+        // Filter class-specific questions (questions that match ANY class in the match)
+        const classSpecificQuestions = window.TRIVIA_QUESTIONS.filter(q => 
+            q.classes && q.classes.length > 0 && 
+            q.classes.some(qClass => matchClasses.includes(qClass))
+        );
+        
+        // Filter general questions (no class tags)
+        const generalQuestions = window.TRIVIA_QUESTIONS.filter(q => 
+            !q.classes || q.classes.length === 0
+        );
+        
+        // Select 2 class-specific + 1 general
+        const selectedQuestions = [];
+        
+        // Get 2 random class-specific questions
+        const shuffledClassQuestions = classSpecificQuestions.sort(() => 0.5 - Math.random());
+        selectedQuestions.push(...shuffledClassQuestions.slice(0, 2));
+        
+        // Get 1 random general question
+        const shuffledGeneralQuestions = generalQuestions.sort(() => 0.5 - Math.random());
+        selectedQuestions.push(...shuffledGeneralQuestions.slice(0, 1));
+        
+        // Shuffle final 3 questions so general isn't always last
+        return selectedQuestions.sort(() => 0.5 - Math.random());
+    }
+    document.getElementById('startFightBtn').addEventListener('click', function() {
+        document.getElementById('matchView').style.display = 'none';
+        document.getElementById('fightView').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        document.getElementById('combatBg').style.backgroundImage = `url('${currentArena.image}')`;
+        document.getElementById('combatArenaTitle').textContent = `${currentArena.name.toUpperCase()} - FIGHT IN PROGRESS`;
+        
+        setupCombatAnimation();
+        
+        // Load questions from external file
+        questions = selectMatchupQuestions();
+        currentQuestion = 0;
+        correctAnswers = 0;
+        
+        setTimeout(() => showQuestion(), 2000);
+    });
+
+    function setupCombatAnimation() {
+        const grid = document.getElementById('combatGrid');
+        const yourTrinket = DATA.trinkets[team.faction];
+        const enemyTrinket = DATA.trinkets[enemy.faction];
+        
+        grid.innerHTML = `
+            <div class="combatant ally" data-index="0">
+                <img src="${yourTrinket}" class="combatant-trinket" data-trinket="0" alt="trinket">
+                <div class="combatant-icons">
+                    <img src="${DATA.classIcons[team.p1.class]}" class="combatant-icon" alt="${team.p1.class}">
+                    <img src="${DATA.specIcons[team.p1.spec]}" class="combatant-spec-icon" alt="${team.p1.spec}">
+                    <img src="${DATA.raceIcons[team.p1.race]}" class="combatant-race-icon" alt="${team.p1.race}">
+                </div>
+                <div class="combatant-name">${team.p1.name.substr(0,8)}</div>
+                <div class="combatant-bars">
+                    <div class="combatant-hp"><div class="combatant-hp-bar" style="width: 100%"></div></div>
+                    <div class="combatant-resource"><div class="combatant-resource-bar ${DATA.resourceTypes[team.p1.class]}" style="width: 80%"></div></div>
+                </div>
+            </div>
+            <div class="combatant ally" data-index="1">
+                <img src="${yourTrinket}" class="combatant-trinket" data-trinket="1" alt="trinket">
+                <div class="combatant-icons">
+                    <img src="${DATA.classIcons[team.p2.class]}" class="combatant-icon" alt="${team.p2.class}">
+                    <img src="${DATA.getSpecIcon(team.p2.class, team.p2.spec)}" class="combatant-spec-icon" alt="${team.p2.spec}">
+                    <img src="${DATA.raceIcons[team.p2.race]}" class="combatant-race-icon" alt="${team.p2.race}">
+                </div>
+                <div class="combatant-name">${team.p2.name.substr(0,8)}</div>
+                <div class="combatant-bars">
+                    <div class="combatant-hp"><div class="combatant-hp-bar" style="width: 100%"></div></div>
+                    <div class="combatant-resource"><div class="combatant-resource-bar ${DATA.resourceTypes[team.p2.class]}" style="width: 75%"></div></div>
+                </div>
+            </div>
+            <div class="combatant enemy" data-index="2">
+                <img src="${enemyTrinket}" class="combatant-trinket" data-trinket="2" alt="trinket">
+                <div class="combatant-icons">
+                    <img src="${DATA.classIcons[enemy.p1]}" class="combatant-icon" alt="${enemy.p1}">
+                    <img src="${DATA.getSpecIcon(enemy.p1, enemy.s1)}" class="combatant-spec-icon" alt="${enemy.s1}">
+                    <img src="${DATA.raceIcons[enemy.r1]}" class="combatant-race-icon" alt="${enemy.r1}">
+                </div>
+                <div class="combatant-name">${enemy.n1}</div>
+                <div class="combatant-bars">
+                    <div class="combatant-hp"><div class="combatant-hp-bar" style="width: 100%"></div></div>
+                    <div class="combatant-resource"><div class="combatant-resource-bar ${DATA.resourceTypes[enemy.p1]}" style="width: 70%"></div></div>
+                </div>
+            </div>
+            <div class="combatant enemy" data-index="3">
+                <img src="${enemyTrinket}" class="combatant-trinket" data-trinket="3" alt="trinket">
+                <div class="combatant-icons">
+                    <img src="${DATA.classIcons[enemy.p2]}" class="combatant-icon" alt="${enemy.p2}">
+                    <img src="${DATA.getSpecIcon(enemy.p2, enemy.s2)}" class="combatant-spec-icon" alt="${enemy.s2}">
+                    <img src="${DATA.raceIcons[enemy.r2]}" class="combatant-race-icon" alt="${enemy.r2}">
+                </div>
+                <div class="combatant-name">${enemy.n2}</div>
+                <div class="combatant-bars">
+                    <div class="combatant-hp"><div class="combatant-hp-bar" style="width: 100%"></div></div>
+                    <div class="combatant-resource"><div class="combatant-resource-bar ${DATA.resourceTypes[enemy.p2]}" style="width: 65%"></div></div>
+                </div>
+            </div>
+        `;
+        
+        combatIntervals.forEach(interval => clearInterval(interval));
+        combatIntervals = [];
+        
+        const hpInterval = setInterval(() => {
+            document.querySelectorAll('.combatant-hp-bar').forEach(bar => {
+                const currentWidth = parseFloat(bar.style.width);
+                const newWidth = Math.max(60, Math.min(100, currentWidth + (Math.random() - 0.5) * 15));
+                bar.style.width = newWidth + '%';
+                
+                if (newWidth < currentWidth) {
+                    bar.closest('.combatant').classList.add('taking-damage');
+                    setTimeout(() => bar.closest('.combatant').classList.remove('taking-damage'), 300);
+                }
+            });
+        }, 1500);
+        
+        const resourceInterval = setInterval(() => {
+            document.querySelectorAll('.combatant-resource-bar').forEach(bar => {
+                const newWidth = Math.max(30, Math.min(100, parseFloat(bar.style.width) + (Math.random() - 0.5) * 20));
+                bar.style.width = newWidth + '%';
+            });
+        }, 1200);
+        
+        const trinketInterval = setInterval(() => {
+            const trinkets = document.querySelectorAll('.combatant-trinket:not(.used)');
+            if (trinkets.length > 0) {
+                const randomTrinket = trinkets[Math.floor(Math.random() * trinkets.length)];
+                randomTrinket.classList.add('activating');
+                setTimeout(() => {
+                    randomTrinket.classList.remove('activating');
+                    randomTrinket.classList.add('used');
+                }, 800);
+            }
+        }, 3000);
+        
+        const combatLogInterval = setInterval(() => {
+            updateCombatLog();
+        }, 3500);
+        
+        combatIntervals.push(hpInterval, resourceInterval, trinketInterval, combatLogInterval);
+    }
+
+    function updateCombatLog() {
+        const log = document.getElementById('combatLog');
+        const action = DATA.combatActions[Math.floor(Math.random() * DATA.combatActions.length)];
+        const players = [team.p1.name.substr(0,8), team.p2.name.substr(0,8), enemy.n1, enemy.n2];
+        const p1 = players[Math.floor(Math.random() * players.length)];
+        let p2 = players[Math.floor(Math.random() * players.length)];
+        while (p2 === p1 && players.length > 1) p2 = players[Math.floor(Math.random() * players.length)];
+        
+        let text = action.replace('{p1}', p1).replace('{p2}', p2);
+        
+        log.textContent = text;
+    }
+
+    function showQuestion() {
+        if (currentQuestion >= questions.length) {
+            resolveMatch();
+            return;
+        }
+        
+        const q = questions[currentQuestion];
+        const container = document.getElementById('questionContainer');
+        
+        let html = `
+            <div class="question-container">
+                <div class="question-number">Arena Knowledge Check ${currentQuestion + 1} of ${questions.length}</div>
+                <div class="question-text">${q.q}</div>
+                <div class="answer-grid" id="answerGrid">
+        `;
+        
+        q.options.forEach((opt, idx) => {
+            html += `<div class="answer-option" data-index="${idx}">${opt}</div>`;
+        });
+        
+        html += `
+                </div>
+                <button class="submit-answer-btn" id="submitAnswer" disabled>Submit Answer</button>
+            </div>
+        `;
+        
+        container.innerHTML = html;
+        
+        let selectedAnswer = null;
+        
+        document.querySelectorAll('.answer-option').forEach(opt => {
+            opt.addEventListener('click', function() {
+                document.querySelectorAll('.answer-option').forEach(o => o.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedAnswer = parseInt(this.dataset.index);
+                document.getElementById('submitAnswer').disabled = false;
+            });
+        });
+        
+        document.getElementById('submitAnswer').onclick = function() {
+            const correct = selectedAnswer === q.correct;
+            if (correct) correctAnswers++;
+            
+            // Show modal with result
+            const modal = document.getElementById('questionModal');
+            const modalResult = document.getElementById('modalResult');
+            const modalExplanation = document.getElementById('modalExplanation');
+            const modalContinue = document.getElementById('modalContinue');
+            
+            modalResult.textContent = correct ? '✅ CORRECT!' : '❌ INCORRECT';
+            modalResult.className = 'modal-result ' + (correct ? 'correct' : 'incorrect');
+            modalExplanation.textContent = q.explanation;
+            
+            // Show modal
+            modal.style.display = 'flex';
+            
+            // Continue button handler
+            modalContinue.onclick = function() {
+                modal.style.display = 'none';
+                currentQuestion++;
+                showQuestion();
+            };
+        };
+    }
+
+    function resolveMatch() {
+        combatIntervals.forEach(interval => clearInterval(interval));
+        combatIntervals = [];
+        
+        const victory = correctAnswers >= 2;
+        
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        setTimeout(() => {
+            const losingClass = victory ? 'enemy' : 'ally';
+            document.querySelectorAll(`.combatant.${losingClass}`).forEach(combatant => {
+                combatant.classList.add('dead');
+                combatant.querySelector('.combatant-hp-bar').style.width = '0%';
+            });
+        }, 500);
+        
+        setTimeout(() => {
+            // Pause timer while viewing results
+            if (challengeActive) {
+                pauseTimer();
+            }
+            
+            document.getElementById('fightView').style.display = 'none';
+            document.getElementById('resultsView').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            showResults(victory);
+        }, 2500);
+    }
+
+    function showResults(victory) {
+        const baseMMR = 20;
+        let mmrChange = victory ? baseMMR : -baseMMR;
+        
+        currentMMR += mmrChange;
+        if (currentMMR < 0) currentMMR = 0;
+        
+        if (victory) wins++; else losses++;
+        
+        // Track session wins/losses for challenge
+        recordMatchResult(victory);
+        
+        matchData.victory = victory;
+        matchData.mmrChange = mmrChange;
+        matchData.newMMR = currentMMR;
+        matchData.correctAnswers = correctAnswers;
+        
+        document.getElementById('resultTitle').textContent = victory ? 'VICTORY' : 'DEFEAT';
+        document.getElementById('resultTitle').className = `result-title ${victory ? 'victory' : 'defeat'}`;
+        
+        document.getElementById('mmrChange').textContent = `${mmrChange > 0 ? '+' : ''}${mmrChange} Rating`;
+        document.getElementById('mmrChange').className = `mmr-change ${mmrChange > 0 ? 'positive' : 'negative'}`;
+        
+        document.getElementById('mmrDisplay').textContent = `Current Rating: ${currentMMR}`;
+        document.getElementById('recordDisplay').textContent = `Record: ${wins}W - ${losses}L`;
+        
+        let summary = `<div class="summary-text"><strong>Arena Knowledge:</strong> You answered ${correctAnswers} out of ${questions.length} questions correctly. ${correctAnswers === questions.length ? 'Perfect execution!' : 'Study the explanations to improve!'}</div>`;
+        
+        if (victory) {
+            summary += `<div class="summary-text"><strong>Victory Analysis:</strong> Superior play secured the win. Practice the strategy breakdown for future matches.</div>`;
+        } else {
+            summary += `<div class="summary-text"><strong>Defeat Analysis:</strong> Review the strategy breakdown to improve your approach.</div>`;
+        }
+        
+        document.getElementById('matchSummary').innerHTML = summary;
+    }
+
+    document.getElementById('shareBtn').addEventListener('click', function() {
+        const shareText = `⚔️ TBC Arena Match ⚔️\n${team.teamName} vs ${enemy.p1}/${enemy.p2}\nResult: ${matchData.victory ? 'VICTORY' : 'DEFEAT'}\nMMR: ${matchData.newMMR} (${matchData.mmrChange > 0 ? '+' : ''}${matchData.mmrChange})\nRecord: ${wins}W-${losses}L\nArena: ${currentArena.name}\nKnowledge: ${correctAnswers}/${questions.length} correct`;
+        
+        if (navigator.share) {
+            navigator.share({ text: shareText }).catch(() => {
+                copyToClipboard(shareText);
+            });
+        } else {
+            copyToClipboard(shareText);
+        }
+    });
+
+    function copyToClipboard(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Match result copied to clipboard!');
+            }).catch(() => {
+                fallbackCopyToClipboard(text);
+            });
+        } else {
+            fallbackCopyToClipboard(text);
+        }
+    }
+
+    function fallbackCopyToClipboard(text) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.top = '-1000px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            alert('Match result copied to clipboard!');
+        } catch (err) {
+            console.error('Failed to copy:', err);
+        }
+        document.body.removeChild(textArea);
+    }
+
+    document.getElementById('requeueBtn').addEventListener('click', function() {
+        // Check if challenge is still active
+        if (challengeActive && timeRemaining <= 0) {
+            endChallenge();
+            return;
+        }
+        
+        document.getElementById('resultsView').style.display = 'none';
+        startQueue();
+    });
+    
+    // Retire Early button - end challenge immediately
+    document.getElementById('retireBtn').addEventListener('click', async function() {
+        if (challengeActive) {
+            endChallenge();
+        }
+    });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "TBC Arena Simulator V14.2",
+  "settings": [],
+  "presets": [{ "name": "TBC Arena Simulator V14.2 - Production" }]
+}
+{% endschema %}

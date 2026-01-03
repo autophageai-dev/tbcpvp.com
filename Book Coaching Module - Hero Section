@@ -1,0 +1,2727 @@
+{% comment %}
+  TBC HERO WITH BOOKING TOOL + CALENDAR - OPTIMIZED LAYOUT
+{% endcomment %}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  .tbc-hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    background: #000;
+    padding: 80px 0 60px;
+  }
+
+  .tbc-hero__background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+  }
+
+  .tbc-hero__background-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.6;
+  }
+
+  .tbc-hero__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.7) 50%, rgba(0,0,0,0.85) 100%);
+    z-index: 2;
+  }
+
+  .tbc-hero__particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 3;
+    pointer-events: none;
+  }
+
+  .tbc-hero__container {
+    position: relative;
+    z-index: 4;
+    max-width: 1140px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 30px;
+    display: grid;
+    grid-template-columns: 35% 65%;
+    gap: 50px;
+    align-items: center;
+  }
+
+  /* LEFT SIDE */
+  .tbc-hero__content {
+    max-width: 100%;
+  }
+
+  .tbc-hero__logo {
+    max-width: 280px;
+    height: auto;
+    margin-bottom: 24px;
+    filter: drop-shadow(0 0 30px rgba(0, 255, 65, 0.3));
+    animation: logoFloat 4s ease-in-out infinite;
+  }
+
+  @keyframes logoFloat {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .tbc-hero__title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 42px;
+    font-weight: 700;
+    color: #00ff41;
+    line-height: 1.2;
+    margin-bottom: 18px;
+    text-shadow: 0 0 40px rgba(0, 255, 65, 0.6);
+  }
+
+  .tbc-hero__subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    color: #c0c0c0;
+    line-height: 1.6;
+    margin-bottom: 28px;
+  }
+
+  .tbc-hero__cta {
+    display: inline-block;
+    font-family: 'Rubik', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #000;
+    background: #00ff41;
+    border: none;
+    padding: 14px 32px;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 0 30px rgba(0, 255, 65, 0.4);
+  }
+
+  .tbc-hero__cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 50px rgba(0, 255, 65, 0.6);
+  }
+
+  /* RIGHT SIDE - BOOKING TOOL */
+  .tbc-booking-tool {
+    background: rgba(0, 0, 0, 0.95);
+    border: 2px solid #00ff41;
+    border-radius: 20px;
+    padding: 40px 36px;
+    box-shadow: 0 0 60px rgba(0, 255, 65, 0.3);
+    max-width: 620px;
+    width: 100%;
+    margin-left: auto;
+  }
+
+  .tbc-booking-tool__title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #00ff41;
+    margin-bottom: 32px;
+    text-align: center;
+  }
+
+  .tbc-booking-tool__steps {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .tbc-step {
+    display: none;
+  }
+
+  .tbc-step.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Form Elements */
+  .tbc-form-group {
+    margin-bottom: 24px;
+  }
+
+  .tbc-form-group:first-child {
+    margin-top: 16px;
+  }
+
+  .tbc-form-label {
+    font-family: 'Rubik', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: #00ff41;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  .tbc-current-pst-time {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: none;
+    letter-spacing: 0;
+    margin-top: 6px;
+  }
+
+  .tbc-input {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    width: 100%;
+    padding: 14px 16px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid rgba(0, 255, 65, 0.3);
+    border-radius: 8px;
+    color: #fff;
+    transition: all 0.3s ease;
+  }
+
+  .tbc-select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%2300ff41' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    padding-right: 48px;
+  }
+
+  .tbc-input:focus {
+    outline: none;
+    border-color: #00ff41;
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+  }
+
+  .tbc-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .tbc-textarea {
+    resize: vertical;
+    min-height: 100px;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .tbc-helper-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 8px;
+    font-style: italic;
+  }
+
+  /* Faction */
+  .tbc-faction-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .tbc-faction-option {
+    position: relative;
+  }
+
+  .tbc-faction-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .tbc-faction-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Rubik', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .tbc-faction-option input:checked + .tbc-faction-label {
+    border-color: #00ff41;
+    background: rgba(0, 255, 65, 0.1);
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+  }
+
+  .tbc-faction-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .tbc-faction-circle--alliance {
+    background: linear-gradient(135deg, #0066ff 0%, #003d99 100%);
+    box-shadow: 0 0 15px rgba(0, 102, 255, 0.5);
+  }
+
+  .tbc-faction-circle--horde {
+    background: linear-gradient(135deg, #ff0000 0%, #990000 100%);
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+  }
+
+  /* Class Grid */
+  .tbc-class-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .tbc-class-option {
+    position: relative;
+  }
+
+  .tbc-class-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .tbc-class-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 8px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Rubik', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    color: #fff;
+  }
+
+  .tbc-class-option input:checked + .tbc-class-label {
+    border-color: #00ff41;
+    background: rgba(0, 255, 65, 0.1);
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+  }
+
+  .tbc-class-icon {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    filter: grayscale(100%) brightness(0.6);
+    transition: all 0.3s ease;
+  }
+
+  .tbc-class-label:hover .tbc-class-icon {
+    filter: grayscale(0%) brightness(1);
+    transform: scale(1.1);
+  }
+
+  .tbc-class-option input:checked + .tbc-class-label .tbc-class-icon {
+    filter: grayscale(0%) brightness(1);
+    transform: scale(1.15);
+  }
+
+  /* Server Grid */
+  .tbc-server-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .tbc-server-option {
+    position: relative;
+  }
+
+  .tbc-server-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .tbc-server-label {
+    display: block;
+    padding: 14px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Rubik', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    text-align: center;
+    color: #fff;
+  }
+
+  .tbc-server-option input:checked + .tbc-server-label {
+    border-color: #00ff41;
+    background: rgba(0, 255, 65, 0.1);
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+  }
+
+  /* Hours Selection */
+  .tbc-hours-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+
+  .tbc-hour-option {
+    position: relative;
+  }
+
+  .tbc-hour-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .tbc-hour-label {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 16px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-height: 120px;
+  }
+
+  .tbc-hour-label:hover {
+    border-color: rgba(0, 255, 65, 0.5);
+    background: rgba(0, 0, 0, 0.7);
+    transform: translateY(-2px);
+  }
+
+  .tbc-hour-option input:checked + .tbc-hour-label {
+    border-color: #00ff41;
+    background: rgba(0, 255, 65, 0.15);
+    box-shadow: 0 0 30px rgba(0, 255, 65, 0.4);
+    transform: translateY(-4px);
+  }
+
+  .tbc-hour-badge {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #00ff41;
+    color: #000;
+    font-family: 'Rubik', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    white-space: nowrap;
+  }
+
+  .tbc-hour-label--best .tbc-hour-badge {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+  }
+
+  .tbc-hour-duration {
+    font-family: 'Poppins', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+
+  .tbc-hour-price {
+    font-family: 'Poppins', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    color: #00ff41;
+    margin-bottom: 4px;
+  }
+
+  .tbc-hour-desc {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .tbc-hour-option input:checked + .tbc-hour-label .tbc-hour-desc {
+    color: #00ff41;
+  }
+
+  /* Bracket Selection */
+  .tbc-bracket-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+
+  .tbc-bracket-option {
+    position: relative;
+  }
+
+  .tbc-bracket-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .tbc-bracket-label {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 18px 16px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-height: 100px;
+  }
+
+  .tbc-bracket-label:hover {
+    border-color: rgba(0, 255, 65, 0.5);
+    transform: translateY(-2px);
+  }
+
+  .tbc-bracket-option input:checked + .tbc-bracket-label {
+    border-color: #00ff41;
+    background: rgba(0, 255, 65, 0.15);
+    box-shadow: 0 0 30px rgba(0, 255, 65, 0.4);
+  }
+
+  .tbc-bracket-badge {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #00ff41;
+    color: #000;
+    font-family: 'Rubik', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 4px 10px;
+    border-radius: 12px;
+  }
+
+  .tbc-bracket-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+  }
+
+  .tbc-bracket-name {
+    font-family: 'Rubik', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  /* Partner Classes */
+  .tbc-partner-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .tbc-partner-option {
+    position: relative;
+  }
+
+  .tbc-partner-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .tbc-partner-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 12px 8px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Rubik', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    color: #fff;
+  }
+
+  .tbc-partner-label:hover {
+    border-color: rgba(0, 255, 65, 0.5);
+  }
+
+  .tbc-partner-option input:checked + .tbc-partner-label {
+    border-color: #00ff41;
+    background: rgba(0, 255, 65, 0.15);
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+  }
+
+  .tbc-partner-icon {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    filter: grayscale(100%) brightness(0.6);
+    transition: all 0.3s ease;
+  }
+
+  .tbc-partner-label:hover .tbc-partner-icon {
+    filter: grayscale(0%) brightness(1);
+    transform: scale(1.1);
+  }
+
+  .tbc-partner-option input:checked + .tbc-partner-label .tbc-partner-icon {
+    filter: grayscale(0%) brightness(1);
+    transform: scale(1.15);
+  }
+
+  .tbc-partner-note {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    text-align: center;
+    margin-top: 10px;
+    font-style: italic;
+  }
+
+  /* Calendar */
+  .tbc-calendar {
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid rgba(0, 255, 65, 0.3);
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 18px;
+  }
+
+  .tbc-calendar__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+  }
+
+  .tbc-calendar__month {
+    font-family: 'Poppins', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #00ff41;
+  }
+
+  .tbc-calendar__nav {
+    display: flex;
+    gap: 8px;
+  }
+
+  .tbc-calendar__nav-btn {
+    width: 36px;
+    height: 36px;
+    background: rgba(0, 255, 65, 0.1);
+    border: 2px solid rgba(0, 255, 65, 0.3);
+    border-radius: 8px;
+    color: #00ff41;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .tbc-calendar__nav-btn:hover {
+    background: rgba(0, 255, 65, 0.2);
+    border-color: #00ff41;
+  }
+
+  .tbc-calendar__grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+  }
+
+  .tbc-calendar__day-header {
+    font-family: 'Rubik', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: #00ff41;
+    text-align: center;
+    padding: 8px 0;
+  }
+
+  .tbc-calendar__day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    border-radius: 8px;
+    cursor: default;
+    transition: all 0.2s ease;
+  }
+
+  .tbc-calendar__day--available {
+    background: rgba(0, 255, 65, 0.05);
+    border: 2px solid rgba(0, 255, 65, 0.2);
+    color: #fff;
+    cursor: pointer;
+  }
+
+  .tbc-calendar__day--available:hover {
+    background: rgba(0, 255, 65, 0.15);
+    border-color: #00ff41;
+    transform: scale(1.05);
+  }
+
+  .tbc-calendar__day--selected {
+    background: rgba(0, 255, 65, 0.3);
+    border-color: #00ff41;
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.4);
+  }
+
+  .tbc-calendar__day--disabled {
+    color: rgba(255, 255, 255, 0.2);
+  }
+
+  /* Time Slots */
+  .tbc-time-slots {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 18px;
+  }
+
+  .tbc-time-option {
+    position: relative;
+  }
+
+  .tbc-time-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .tbc-time-label {
+    display: block;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Rubik', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    color: #fff;
+  }
+
+  .tbc-time-label:hover {
+    border-color: rgba(0, 255, 65, 0.5);
+    background: rgba(0, 0, 0, 0.8);
+  }
+
+  .tbc-time-option input:checked + .tbc-time-label {
+    border-color: #00ff41;
+    background: rgba(0, 255, 65, 0.15);
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+  }
+
+  /* Success Modal */
+  #booking-success-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .success-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .success-modal-content {
+    position: relative;
+    background: linear-gradient(135deg, rgba(0, 30, 15, 0.95) 0%, rgba(0, 0, 0, 0.95) 100%);
+    border: 3px solid #00ff41;
+    border-radius: 24px;
+    padding: 50px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 0 100px rgba(0, 255, 65, 0.6);
+    animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes modalSlideIn {
+    from {
+      transform: scale(0.8) translateY(-50px);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .success-confetti {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .confetti-piece {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    top: -10px;
+    animation: confettiFall 3s linear forwards;
+  }
+
+  @keyframes confettiFall {
+    to {
+      transform: translateY(100vh) rotate(360deg);
+      opacity: 0;
+    }
+  }
+
+  .success-icon {
+    font-size: 80px;
+    text-align: center;
+    margin-bottom: 20px;
+    animation: iconBounce 1s ease infinite;
+  }
+
+  @keyframes iconBounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+  }
+
+  .success-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 36px;
+    font-weight: 900;
+    color: #00ff41;
+    text-align: center;
+    margin-bottom: 16px;
+    text-shadow: 0 0 30px rgba(0, 255, 65, 0.8);
+  }
+
+  .success-message {
+    font-family: 'Inter', sans-serif;
+    font-size: 18px;
+    color: #fff;
+    text-align: center;
+    margin-bottom: 32px;
+    line-height: 1.6;
+  }
+
+  .success-details {
+    background: rgba(0, 255, 65, 0.1);
+    border: 2px solid rgba(0, 255, 65, 0.3);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 32px;
+  }
+
+  .success-detail {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .success-detail:last-child {
+    border-bottom: none;
+  }
+
+  .success-detail-label {
+    font-family: 'Rubik', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: #00ff41;
+    text-transform: uppercase;
+  }
+
+  .success-detail-value {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .success-discord {
+    background: linear-gradient(135deg, rgba(88, 101, 242, 0.2) 0%, rgba(88, 101, 242, 0.05) 100%);
+    border: 2px solid #5865F2;
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .success-discord-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+  }
+
+  .success-discord-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+
+  .success-discord-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+
+  .success-discord-btn {
+    display: inline-block;
+    font-family: 'Rubik', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    background: #5865F2;
+    padding: 14px 32px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(88, 101, 242, 0.4);
+  }
+
+  .success-discord-btn:hover {
+    background: #4752C4;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(88, 101, 242, 0.6);
+  }
+
+  .success-payment {
+    background: linear-gradient(135deg, rgba(0, 150, 255, 0.15) 0%, rgba(0, 100, 200, 0.05) 100%);
+    border: 3px solid #0096ff;
+    border-radius: 16px;
+    padding: 28px;
+    text-align: center;
+    margin-bottom: 32px;
+    animation: pulseGlow 2s ease-in-out infinite;
+  }
+
+  @keyframes pulseGlow {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(0, 150, 255, 0.4);
+    }
+    50% {
+      box-shadow: 0 0 40px rgba(0, 150, 255, 0.7);
+    }
+  }
+
+  .success-payment-icon {
+    font-size: 52px;
+    margin-bottom: 16px;
+  }
+
+  .success-payment-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 12px;
+  }
+
+  .success-payment-amount {
+    font-family: 'Poppins', sans-serif;
+    font-size: 36px;
+    font-weight: 900;
+    color: #0096ff;
+    margin-bottom: 12px;
+    text-shadow: 0 0 20px rgba(0, 150, 255, 0.6);
+  }
+
+  .success-payment-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 20px;
+  }
+
+  .success-payment-btn {
+    display: inline-block;
+    font-family: 'Rubik', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #000;
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+    padding: 18px 40px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 25px rgba(255, 215, 0, 0.5);
+    margin-bottom: 12px;
+  }
+
+  .success-payment-btn:hover {
+    background: linear-gradient(135deg, #ffed4e 0%, #ffd700 100%);
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 10px 35px rgba(255, 215, 0, 0.7);
+  }
+
+  .success-payment-btn:active {
+    transform: translateY(-1px) scale(1.02);
+  }
+
+  .success-payment-note {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+    font-style: italic;
+  }
+
+  .success-next-steps {
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+
+  .success-steps-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #00ff41;
+    margin-bottom: 16px;
+  }
+
+  .success-steps-list {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.8;
+    padding-left: 20px;
+  }
+
+  .success-steps-list li {
+    margin-bottom: 8px;
+  }
+
+  .success-close-btn {
+    width: 100%;
+    font-family: 'Rubik', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #00ff41;
+    background: transparent;
+    border: 2px solid #00ff41;
+    padding: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .success-close-btn:hover {
+    background: rgba(0, 255, 65, 0.1);
+    transform: translateY(-2px);
+  }
+
+  /* Selected Date Display */
+  .tbc-selected-date {
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #00ff41;
+    padding: 14px;
+    background: rgba(0, 255, 65, 0.1);
+    border: 2px solid #00ff41;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  /* Full Time Slots Grid */
+  .tbc-time-slots-full {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  /* Calendly Embed */
+  .tbc-calendly-container {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(0, 255, 65, 0.2);
+    border-radius: 12px;
+    padding: 0;
+    min-height: 700px;
+    overflow: hidden;
+  }
+
+  .tbc-calendly-embed {
+    width: 100%;
+    min-height: 700px;
+    height: 700px;
+  }
+
+  .tbc-calendly-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 700px;
+    color: #a0a0a0;
+  }
+
+  .tbc-loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(0, 255, 65, 0.2);
+    border-top-color: #00ff41;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .tbc-calendly-note {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 10px;
+  }
+
+  /* Buttons */
+  .tbc-btn-group {
+    display: flex;
+    gap: 12px;
+    margin-top: 28px;
+  }
+
+  .tbc-btn {
+    flex: 1;
+    font-family: 'Rubik', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 16px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .tbc-btn--primary {
+    background: #00ff41;
+    color: #000;
+    box-shadow: 0 0 30px rgba(0, 255, 65, 0.4);
+  }
+
+  .tbc-btn--primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 40px rgba(0, 255, 65, 0.6);
+  }
+
+  .tbc-btn--secondary {
+    background: transparent;
+    color: #00ff41;
+    border: 2px solid #00ff41;
+  }
+
+  .tbc-btn--secondary:hover {
+    background: rgba(0, 255, 65, 0.1);
+  }
+
+  .tbc-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Progress Bar */
+  .tbc-progress {
+    margin-bottom: 28px;
+  }
+
+  .tbc-progress__track {
+    position: relative;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .tbc-progress__bar {
+    position: absolute;
+    height: 100%;
+    background: linear-gradient(90deg, #00ff41 0%, #00d4ff 100%);
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.6);
+    width: 14.28%;
+  }
+
+  .tbc-progress__steps {
+    display: flex;
+    justify-content: space-between;
+    gap: 6px;
+  }
+
+  .tbc-progress__step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+  }
+
+  .tbc-progress__step-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Rubik', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.4);
+    transition: all 0.3s ease;
+  }
+
+  .tbc-progress__step-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+
+  .tbc-progress__step--active .tbc-progress__step-circle {
+    background: rgba(0, 255, 65, 0.15);
+    border-color: #00ff41;
+    color: #00ff41;
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.4);
+  }
+
+  .tbc-progress__step--active .tbc-progress__step-label {
+    color: #00ff41;
+  }
+
+  .tbc-progress__step--complete .tbc-progress__step-circle {
+    background: #00ff41;
+    border-color: #00ff41;
+    color: #000;
+  }
+
+  .tbc-progress__step--complete .tbc-progress__step-label {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  /* Particle */
+  .particle {
+    position: absolute;
+    background: #00ff41;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: float linear infinite;
+    opacity: 0.6;
+    box-shadow: 0 0 8px #00ff41;
+    --drift: 0px;
+  }
+
+  @keyframes float {
+    0% { 
+      transform: translateY(100vh) translateX(0); 
+      opacity: 0; 
+    }
+    10% { 
+      opacity: 0.6; 
+    }
+    50% {
+      transform: translateY(50vh) translateX(var(--drift));
+    }
+    90% { 
+      opacity: 0.6; 
+    }
+    100% { 
+      transform: translateY(-100px) translateX(calc(var(--drift) * 2)); 
+      opacity: 0; 
+    }
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .tbc-hero__container {
+      max-width: 960px;
+      gap: 40px;
+      padding: 0 24px;
+    }
+
+    .tbc-hero__title {
+      font-size: 36px;
+    }
+
+    .tbc-booking-tool {
+      padding: 32px 28px;
+    }
+
+    .tbc-booking-tool__title {
+      font-size: 24px;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .tbc-hero__container {
+      grid-template-columns: 1fr;
+      gap: 40px;
+      max-width: 620px;
+      padding: 0 24px;
+    }
+
+    .tbc-hero__content {
+      max-width: 100%;
+      text-align: center;
+    }
+
+    .tbc-hero__logo {
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .tbc-booking-tool {
+      margin-left: auto;
+      margin-right: auto;
+      max-width: 620px;
+    }
+
+    .tbc-hero__title {
+      font-size: 38px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .tbc-hero {
+      padding: 60px 0 50px;
+    }
+
+    .tbc-hero__container {
+      padding: 0 16px;
+      gap: 32px;
+    }
+
+    .tbc-hero__content {
+      text-align: center;
+    }
+
+    .tbc-hero__logo {
+      max-width: 220px;
+      margin-bottom: 16px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .tbc-hero__title {
+      font-size: 28px;
+      line-height: 1.2;
+    }
+
+    .tbc-hero__subtitle {
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .tbc-booking-tool {
+      padding: 24px 16px;
+      border-radius: 16px;
+    }
+
+    .tbc-booking-tool__title {
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
+
+    /* Progress - Hide labels on mobile, show only active */
+    .tbc-progress__steps {
+      gap: 4px;
+    }
+
+    .tbc-progress__step {
+      flex: 0 0 auto;
+    }
+
+    .tbc-progress__step-circle {
+      width: 26px;
+      height: 26px;
+      font-size: 11px;
+    }
+
+    .tbc-progress__step-label {
+      display: none;
+    }
+
+    .tbc-progress__step--active .tbc-progress__step-label {
+      display: block;
+      font-size: 9px;
+    }
+
+    /* Form elements - larger touch targets */
+    .tbc-input,
+    .tbc-select,
+    .tbc-textarea {
+      font-size: 16px;
+      padding: 14px 16px;
+    }
+
+    .tbc-form-label {
+      font-size: 11px;
+      margin-bottom: 10px;
+    }
+
+    /* Class grid - 2 columns on small screens */
+    .tbc-class-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .tbc-class-label {
+      padding: 12px 8px;
+      gap: 6px;
+    }
+
+    .tbc-class-label span {
+      font-size: 11px;
+    }
+
+    .tbc-class-icon {
+      width: 32px;
+      height: 32px;
+    }
+
+    /* Partner grid - 2 columns */
+    .tbc-partner-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .tbc-partner-label {
+      padding: 12px 8px;
+      gap: 5px;
+    }
+
+    .tbc-partner-label span {
+      font-size: 11px;
+    }
+
+    .tbc-partner-icon {
+      width: 28px;
+      height: 28px;
+    }
+
+    /* Bracket grid */
+    .tbc-bracket-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .tbc-bracket-label {
+      padding: 16px;
+    }
+
+    /* Faction & Server - single column */
+    .tbc-faction-grid,
+    .tbc-server-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .tbc-faction-label,
+    .tbc-server-label {
+      padding: 14px;
+      font-size: 14px;
+    }
+
+    /* Hours grid - 2 columns */
+    .tbc-hours-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .tbc-hour-label {
+      padding: 16px 12px;
+      min-height: 110px;
+    }
+
+    .tbc-hour-duration {
+      font-size: 18px;
+    }
+
+    .tbc-hour-price {
+      font-size: 22px;
+    }
+
+    .tbc-hour-badge {
+      font-size: 9px;
+      padding: 3px 8px;
+    }
+
+    /* Calendar - better mobile layout */
+    .tbc-calendar {
+      padding: 14px;
+    }
+
+    .tbc-calendar__header {
+      margin-bottom: 14px;
+    }
+
+    .tbc-calendar__month {
+      font-size: 16px;
+    }
+
+    .tbc-calendar__nav-btn {
+      width: 32px;
+      height: 32px;
+      font-size: 18px;
+    }
+
+    .tbc-calendar__day {
+      font-size: 12px;
+    }
+
+    .tbc-calendar__day-header {
+      font-size: 10px;
+      padding: 6px 0;
+    }
+
+    /* Time slots - 2 columns */
+    .tbc-time-slots-full {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .tbc-time-label {
+      padding: 12px 10px;
+      font-size: 13px;
+    }
+
+    /* Buttons - full width and sticky */
+    .tbc-btn-group {
+      position: sticky;
+      bottom: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.95) 80%, transparent);
+      padding: 16px 0;
+      margin: 0 -16px -24px;
+      padding-left: 16px;
+      padding-right: 16px;
+      gap: 10px;
+    }
+
+    .tbc-btn {
+      padding: 15px 20px;
+      font-size: 14px;
+      min-height: 50px;
+    }
+
+    .tbc-btn--secondary {
+      flex: 0 0 auto;
+      min-width: 90px;
+    }
+
+    .tbc-btn--primary {
+      flex: 1;
+    }
+
+    /* Selected date display */
+    .tbc-selected-date {
+      font-size: 14px;
+      padding: 12px;
+    }
+
+    /* Current PST time */
+    .tbc-current-pst-time {
+      font-size: 11px;
+    }
+
+    /* Partner note */
+    .tbc-partner-note {
+      font-size: 11px;
+    }
+  }
+
+  /* Extra small phones */
+  @media (max-width: 375px) {
+    .tbc-hero__title {
+      font-size: 24px;
+    }
+
+    .tbc-hero__logo {
+      max-width: 200px;
+    }
+
+    .tbc-booking-tool {
+      padding: 20px 14px;
+    }
+
+    .tbc-progress__step-circle {
+      width: 24px;
+      height: 24px;
+      font-size: 10px;
+    }
+
+    .tbc-class-icon {
+      width: 28px;
+      height: 28px;
+    }
+
+    .tbc-partner-icon {
+      width: 24px;
+      height: 24px;
+    }
+
+    .tbc-hour-duration {
+      font-size: 16px;
+    }
+
+    .tbc-hour-price {
+      font-size: 20px;
+    }
+
+    .tbc-time-label {
+      font-size: 12px;
+    }
+  }
+</style>
+
+<section class="tbc-hero" id="booking">
+  <div class="tbc-hero__background">
+    {% if section.settings.background_image != blank %}
+      {{ section.settings.background_image | image_url: width: 2400 | image_tag: class: 'tbc-hero__background-image', loading: 'eager' }}
+    {% endif %}
+  </div>
+
+  <div class="tbc-hero__overlay"></div>
+  
+  <div class="tbc-hero__particles" id="particles"></div>
+
+  <div class="tbc-hero__container">
+    
+    <!-- LEFT -->
+    <div class="tbc-hero__content">
+      <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/emptybg-processed-tbc20thlogorraw-20251219T060547_1.png?v=1766431386" alt="World of Warcraft Burning Crusade Classic" class="tbc-hero__logo" loading="eager">
+      <h1 class="tbc-hero__title">{{ section.settings.title }}</h1>
+      <p class="tbc-hero__subtitle">{{ section.settings.subtitle }}</p>
+      {% if section.settings.show_cta and section.settings.cta_link != blank %}
+        <a href="{{ section.settings.cta_link }}" class="tbc-hero__cta">{{ section.settings.cta_text }}</a>
+      {% endif %}
+    </div>
+
+    <!-- RIGHT -->
+    <div class="tbc-booking-tool">
+      <h2 class="tbc-booking-tool__title">Book Your Session</h2>
+      
+      <div class="tbc-progress">
+        <div class="tbc-progress__track">
+          <div class="tbc-progress__bar" id="progress-bar"></div>
+        </div>
+      </div>
+      <div class="tbc-progress__steps">
+        <div class="tbc-progress__step tbc-progress__step--active" data-step="1">
+          <div class="tbc-progress__step-circle">1</div>
+          <div class="tbc-progress__step-label">Info</div>
+        </div>
+        <div class="tbc-progress__step" data-step="2">
+          <div class="tbc-progress__step-circle">2</div>
+          <div class="tbc-progress__step-label">Class</div>
+        </div>
+        <div class="tbc-progress__step" data-step="3">
+          <div class="tbc-progress__step-circle">3</div>
+          <div class="tbc-progress__step-label">Bracket</div>
+        </div>
+        <div class="tbc-progress__step" data-step="4">
+          <div class="tbc-progress__step-circle">4</div>
+          <div class="tbc-progress__step-label">Server</div>
+        </div>
+        <div class="tbc-progress__step" data-step="5">
+          <div class="tbc-progress__step-circle">5</div>
+          <div class="tbc-progress__step-label">Hours</div>
+        </div>
+        <div class="tbc-progress__step" data-step="6">
+          <div class="tbc-progress__step-circle">6</div>
+          <div class="tbc-progress__step-label">Date</div>
+        </div>
+        <div class="tbc-progress__step" data-step="7">
+          <div class="tbc-progress__step-circle">7</div>
+          <div class="tbc-progress__step-label">Time</div>
+        </div>
+      </div>
+
+      <div class="tbc-booking-tool__steps">
+        
+        <!-- STEP 1: Character Info + Region -->
+        <div class="tbc-step active" data-step="1">
+          <div class="tbc-form-group">
+            <label class="tbc-form-label">Character Name</label>
+            <input type="text" class="tbc-input" id="character-name" placeholder="Enter your character name" required>
+          </div>
+
+          <div class="tbc-form-group">
+            <label class="tbc-form-label">Region</label>
+            <select class="tbc-input tbc-select" name="region" id="region" required>
+              <option value="">Select your region</option>
+              <option value="NA">North America (NA)</option>
+              <option value="EU">Europe (EU)</option>
+              <option value="OCE">Oceanic (OCE)</option>
+            </select>
+          </div>
+
+          <div class="tbc-form-group">
+            <label class="tbc-form-label">Faction</label>
+            <div class="tbc-faction-grid">
+              <div class="tbc-faction-option">
+                <input type="radio" name="faction" value="alliance" id="faction-alliance">
+                <label for="faction-alliance" class="tbc-faction-label">
+                  <div class="tbc-faction-circle tbc-faction-circle--alliance"></div>
+                  Alliance
+                </label>
+              </div>
+              <div class="tbc-faction-option">
+                <input type="radio" name="faction" value="horde" id="faction-horde">
+                <label for="faction-horde" class="tbc-faction-label">
+                  <div class="tbc-faction-circle tbc-faction-circle--horde"></div>
+                  Horde
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="tbc-btn-group">
+            <button class="tbc-btn tbc-btn--primary" onclick="nextStep(2)">Next Step →</button>
+          </div>
+        </div>
+
+        <!-- STEP 2: Class Selection -->
+        <div class="tbc-step" data-step="2">
+          <div class="tbc-form-group">
+            <label class="tbc-form-label">Select Your Class</label>
+            <div class="tbc-class-grid">
+              <div class="tbc-class-option">
+                <input type="radio" name="class" value="warrior" id="class-warrior">
+                <label for="class-warrior" class="tbc-class-label">
+                  <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/war.png?v=1766427831" alt="Warrior" class="tbc-class-icon">
+                  Warrior
+                </label>
+              </div>
+              <div class="tbc-class-option">
+                <input type="radio" name="class" value="paladin" id="class-paladin">
+                <label for="class-paladin" class="tbc-class-label">
+                  <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/pala.png?v=1766427831" alt="Paladin" class="tbc-class-icon">
+                  Paladin
+                </label>
+              </div>
+              <div class="tbc-class-option">
+                <input type="radio" name="class" value="hunter" id="class-hunter">
+                <label for="class-hunter" class="tbc-class-label">
+                  <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/hunter.png?v=1766427832" alt="Hunter" class="tbc-class-icon">
+                  Hunter
+                </label>
+              </div>
+              <div class="tbc-class-option">
+                <input type="radio" name="class" value="rogue" id="class-rogue">
+                <label for="class-rogue" class="tbc-class-label">
+                  <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/rogue.png?v=1766427831" alt="Rogue" class="tbc-class-icon">
+                  Rogue
+                </label>
+              </div>
+              <div class="tbc-class-option">
+                <input type="radio" name="class" value="priest" id="class-priest">
+                <label for="class-priest" class="tbc-class-label">
+                  <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/priest.png?v=1766427831" alt="Priest" class="tbc-class-icon">
+                  Priest
+                </label>
+              </div>
+              <div class="tbc-class-option">
+                <input type="radio" name="class" value="shaman" id="class-shaman">
+                <label for="class-shaman" class="tbc-class-label">
+                  <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/shaman.png?v=1766427831" alt="Shaman" class="tbc-class-icon">
+                  Shaman
+                </label>
+              </div>
+              <div class="tbc-class-option">
+                <input type="radio" name="class" value="mage" id="class-mage">
+                <label for="class-mage" class="tbc-class-label">
+                  <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/mage.png?v=1766427831" alt="Mage" class="tbc-class-icon">
+                  Mage
+                </label>
+              </div>
+              <div class="tbc-class-option">
+                <input type="radio" name="class" value="warlock" id="class-warlock">
+                <label for="class-warlock" class="tbc-class-label">
+                  <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/warlock.png?v=1766427831" alt="Warlock" class="tbc-class-icon">
+                  Warlock
+                </label>
+              </div>
+              <div class="tbc-class-option">
+                <input type="radio" name="class" value="druid" id="class-druid">
+                <label for="class-druid" class="tbc-class-label">
+                  <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/druid.png?v=1766427831" alt="Druid" class="tbc-class-icon">
+                  Druid
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="tbc-btn-group">
+            <button class="tbc-btn tbc-btn--secondary" onclick="prevStep(1)">← Back</button>
+            <button class="tbc-btn tbc-btn--primary" onclick="nextStep(3)">Next Step →</button>
+          </div>
+        </div>
+
+        <!-- STEP 3: Bracket & Partner Classes -->
+        <div class="tbc-step" data-step="3">
+          <div class="tbc-form-group">
+            <label class="tbc-form-label">Select Bracket Type</label>
+            <div class="tbc-bracket-grid">
+              <div class="tbc-bracket-option">
+                <input type="radio" name="bracket" value="battlegrounds" id="bracket-bg">
+                <label for="bracket-bg" class="tbc-bracket-label">
+                  <div class="tbc-bracket-icon">⚔️</div>
+                  <div class="tbc-bracket-name">Battlegrounds</div>
+                </label>
+              </div>
+              <div class="tbc-bracket-option">
+                <input type="radio" name="bracket" value="2v2" id="bracket-2v2">
+                <label for="bracket-2v2" class="tbc-bracket-label tbc-bracket-label--popular">
+                  <div class="tbc-bracket-badge">Popular</div>
+                  <div class="tbc-bracket-icon">👥</div>
+                  <div class="tbc-bracket-name">2v2 Arena</div>
+                </label>
+              </div>
+              <div class="tbc-bracket-option">
+                <input type="radio" name="bracket" value="3v3" id="bracket-3v3">
+                <label for="bracket-3v3" class="tbc-bracket-label">
+                  <div class="tbc-bracket-icon">👥👤</div>
+                  <div class="tbc-bracket-name">3v3 Arena</div>
+                </label>
+              </div>
+              <div class="tbc-bracket-option">
+                <input type="radio" name="bracket" value="5v5" id="bracket-5v5">
+                <label for="bracket-5v5" class="tbc-bracket-label">
+                  <div class="tbc-bracket-icon">👥👥👤</div>
+                  <div class="tbc-bracket-name">5v5 Arena</div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="tbc-form-group">
+            <label class="tbc-form-label">Ideal Partner Classes (Select Multiple)</label>
+            <div class="tbc-partner-grid">
+              <div class="tbc-partner-option">
+                <input type="checkbox" name="partners" value="warrior" id="partner-warrior">
+                <label for="partner-warrior" class="tbc-partner-label">
+                  <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/war.png?v=1766427831" alt="Warrior" class="tbc-partner-icon">
+                  Warrior
+                </label>
+              </div>
+              <div class="tbc-partner-option">
+                <input type="checkbox" name="partners" value="paladin" id="partner-paladin">
+                <label for="partner-paladin" class="tbc-partner-label">
+                  <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/pala.png?v=1766427831" alt="Paladin" class="tbc-partner-icon">
+                  Paladin
+                </label>
+              </div>
+              <div class="tbc-partner-option">
+                <input type="checkbox" name="partners" value="hunter" id="partner-hunter">
+                <label for="partner-hunter" class="tbc-partner-label">
+                  <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/hunter.png?v=1766427832" alt="Hunter" class="tbc-partner-icon">
+                  Hunter
+                </label>
+              </div>
+              <div class="tbc-partner-option">
+                <input type="checkbox" name="partners" value="rogue" id="partner-rogue">
+                <label for="partner-rogue" class="tbc-partner-label">
+                  <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/rogue.png?v=1766427831" alt="Rogue" class="tbc-partner-icon">
+                  Rogue
+                </label>
+              </div>
+              <div class="tbc-partner-option">
+                <input type="checkbox" name="partners" value="priest" id="partner-priest">
+                <label for="partner-priest" class="tbc-partner-label">
+                  <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/priest.png?v=1766427831" alt="Priest" class="tbc-partner-icon">
+                  Priest
+                </label>
+              </div>
+              <div class="tbc-partner-option">
+                <input type="checkbox" name="partners" value="shaman" id="partner-shaman">
+                <label for="partner-shaman" class="tbc-partner-label">
+                  <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/shaman.png?v=1766427831" alt="Shaman" class="tbc-partner-icon">
+                  Shaman
+                </label>
+              </div>
+              <div class="tbc-partner-option">
+                <input type="checkbox" name="partners" value="mage" id="partner-mage">
+                <label for="partner-mage" class="tbc-partner-label">
+                  <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/mage.png?v=1766427831" alt="Mage" class="tbc-partner-icon">
+                  Mage
+                </label>
+              </div>
+              <div class="tbc-partner-option">
+                <input type="checkbox" name="partners" value="warlock" id="partner-warlock">
+                <label for="partner-warlock" class="tbc-partner-label">
+                  <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/warlock.png?v=1766427831" alt="Warlock" class="tbc-partner-icon">
+                  Warlock
+                </label>
+              </div>
+              <div class="tbc-partner-option">
+                <input type="checkbox" name="partners" value="druid" id="partner-druid">
+                <label for="partner-druid" class="tbc-partner-label">
+                  <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/druid.png?v=1766427831" alt="Druid" class="tbc-partner-icon">
+                  Druid
+                </label>
+              </div>
+            </div>
+            <p class="tbc-partner-note">Select all classes you'd like coaching on partnering with</p>
+          </div>
+
+          <div class="tbc-btn-group">
+            <button class="tbc-btn tbc-btn--secondary" onclick="prevStep(2)">← Back</button>
+            <button class="tbc-btn tbc-btn--primary" onclick="nextStep(4)">Next Step →</button>
+          </div>
+        </div>
+
+        <!-- STEP 4: Server -->
+        <div class="tbc-step" data-step="4">
+          <div class="tbc-form-group">
+            <label class="tbc-form-label">Select Server</label>
+            <div class="tbc-server-grid" id="server-grid">
+              <!-- Populated dynamically based on region -->
+            </div>
+          </div>
+
+          <div class="tbc-btn-group">
+            <button class="tbc-btn tbc-btn--secondary" onclick="prevStep(3)">← Back</button>
+            <button class="tbc-btn tbc-btn--primary" onclick="nextStep(5)">Next Step →</button>
+          </div>
+        </div>
+
+        <!-- STEP 5: Hours Selection -->
+        <div class="tbc-step" data-step="5">
+          <div class="tbc-form-group">
+            <label class="tbc-form-label">Select Session Duration</label>
+            <div class="tbc-hours-grid">
+              <div class="tbc-hour-option">
+                <input type="radio" name="hours" value="1" data-price="65" id="hours-1">
+                <label for="hours-1" class="tbc-hour-label">
+                  <div class="tbc-hour-duration">1 Hour</div>
+                  <div class="tbc-hour-price">$65</div>
+                  <div class="tbc-hour-desc">Quick Session</div>
+                </label>
+              </div>
+              <div class="tbc-hour-option">
+                <input type="radio" name="hours" value="2" data-price="120" id="hours-2">
+                <label for="hours-2" class="tbc-hour-label tbc-hour-label--popular">
+                  <div class="tbc-hour-badge">Most Popular</div>
+                  <div class="tbc-hour-duration">2 Hours</div>
+                  <div class="tbc-hour-price">$120</div>
+                  <div class="tbc-hour-desc">Save $10</div>
+                </label>
+              </div>
+              <div class="tbc-hour-option">
+                <input type="radio" name="hours" value="3" data-price="170" id="hours-3">
+                <label for="hours-3" class="tbc-hour-label">
+                  <div class="tbc-hour-duration">3 Hours</div>
+                  <div class="tbc-hour-price">$170</div>
+                  <div class="tbc-hour-desc">Save $25</div>
+                </label>
+              </div>
+              <div class="tbc-hour-option">
+                <input type="radio" name="hours" value="4" data-price="220" id="hours-4">
+                <label for="hours-4" class="tbc-hour-label tbc-hour-label--best">
+                  <div class="tbc-hour-badge">Best Value</div>
+                  <div class="tbc-hour-duration">4 Hours</div>
+                  <div class="tbc-hour-price">$220</div>
+                  <div class="tbc-hour-desc">Save $40</div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="tbc-btn-group">
+            <button class="tbc-btn tbc-btn--secondary" onclick="prevStep(4)">← Back</button>
+            <button class="tbc-btn tbc-btn--primary" onclick="nextStep(6)">Choose Date & Time →</button>
+          </div>
+        </div>
+
+        <!-- STEP 6: Calendar - Date Selection -->
+        <div class="tbc-step" data-step="6">
+          <div class="tbc-form-group">
+            <label class="tbc-form-label">Select Date (PST Timezone)</label>
+            
+            <div class="tbc-calendar">
+              <div class="tbc-calendar__header">
+                <div class="tbc-calendar__month" id="calendar-month"></div>
+                <div class="tbc-calendar__nav">
+                  <button type="button" class="tbc-calendar__nav-btn" onclick="changeMonth(-1)">‹</button>
+                  <button type="button" class="tbc-calendar__nav-btn" onclick="changeMonth(1)">›</button>
+                </div>
+              </div>
+              <div class="tbc-calendar__grid" id="calendar-grid"></div>
+            </div>
+          </div>
+
+          <div class="tbc-btn-group">
+            <button class="tbc-btn tbc-btn--secondary" onclick="prevStep(5)">← Back</button>
+            <button class="tbc-btn tbc-btn--primary" id="date-next-btn" disabled onclick="nextStep(7)">Choose Time Slot →</button>
+          </div>
+        </div>
+
+        <!-- STEP 7: Time Slot Selection -->
+        <div class="tbc-step" data-step="7">
+          <div class="tbc-form-group">
+            <label class="tbc-form-label">Email Address</label>
+            <input type="email" class="tbc-input" id="user-email" placeholder="your.email@example.com" required>
+          </div>
+
+          <div class="tbc-form-group">
+            <label class="tbc-form-label">Discord Handle</label>
+            <input type="text" class="tbc-input" id="discord-handle" placeholder="YourName#1234" required>
+          </div>
+
+          <div class="tbc-form-group">
+            <label class="tbc-form-label">Selected Date</label>
+            <div class="tbc-selected-date" id="selected-date-display"></div>
+          </div>
+
+          <div class="tbc-form-group">
+            <label class="tbc-form-label">
+              Available Time Slots (PST)
+              <span class="tbc-current-pst-time" id="current-pst-time"></span>
+            </label>
+            <div class="tbc-time-slots-full" id="time-slots-full">
+              <!-- All time slots 9AM - 11PM PST -->
+            </div>
+          </div>
+
+          <div class="tbc-form-group">
+            <label class="tbc-form-label">Additional Notes (Optional)</label>
+            <textarea class="tbc-input tbc-textarea" id="booking-notes" placeholder="Any specific goals, comps you want to practice, or questions..." rows="4"></textarea>
+          </div>
+
+          <div class="tbc-btn-group">
+            <button class="tbc-btn tbc-btn--secondary" onclick="prevStep(6)">← Back</button>
+            <button class="tbc-btn tbc-btn--primary" id="submit-booking" disabled>Submit Booking Request →</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+// Particles
+(function() {
+  const container = document.getElementById('particles');
+  if (!container) return;
+
+  function createParticle() {
+    const particle = document.createElement('div');
+    particle.className = 'particle';
+    const size = Math.random() * 4 + 2;
+    particle.style.width = size + 'px';
+    particle.style.height = size + 'px';
+    particle.style.left = Math.random() * 100 + '%';
+    
+    // Randomize animation duration for variety
+    const duration = Math.random() * 10 + 15;
+    particle.style.animationDuration = duration + 's';
+    particle.style.animationDelay = (Math.random() * 3) + 's';
+    
+    // Random horizontal drift
+    const drift = (Math.random() - 0.5) * 100;
+    particle.style.setProperty('--drift', drift + 'px');
+    
+    container.appendChild(particle);
+    
+    setTimeout(() => {
+      particle.remove();
+      createParticle();
+    }, (duration + 3) * 1000);
+  }
+
+  // Minimal particles for performance
+  for (let i = 0; i < 15; i++) {
+    setTimeout(() => createParticle(), i * 100);
+  }
+})();
+
+// Booking Logic
+let currentStep = 1;
+let selectedHours = null;
+let selectedPrice = 0;
+let selectedDate = null;
+let selectedTime = null;
+let currentMonth = new Date();
+
+function nextStep(step) {
+  if (!validateStep(currentStep)) return;
+  currentStep = step;
+  updateStepDisplay();
+}
+
+function prevStep(step) {
+  currentStep = step;
+  updateStepDisplay();
+}
+
+function updateStepDisplay() {
+  document.querySelectorAll('.tbc-step').forEach(el => el.classList.remove('active'));
+  const currentStepEl = document.querySelector(`.tbc-step[data-step="${currentStep}"]`);
+  if (currentStepEl) {
+    currentStepEl.classList.add('active');
+    // Smooth scroll to top of form on mobile
+    if (window.innerWidth <= 768) {
+      currentStepEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+  
+  // Update progress bar (7 steps now)
+  const progressBar = document.getElementById('progress-bar');
+  const progressWidth = (currentStep / 7) * 100;
+  if (progressBar) {
+    progressBar.style.width = progressWidth + '%';
+  }
+  
+  // Update progress step circles
+  document.querySelectorAll('.tbc-progress__step').forEach((step, index) => {
+    const stepNumber = index + 1;
+    step.classList.remove('tbc-progress__step--active', 'tbc-progress__step--complete');
+    
+    if (stepNumber === currentStep) {
+      step.classList.add('tbc-progress__step--active');
+    } else if (stepNumber < currentStep) {
+      step.classList.add('tbc-progress__step--complete');
+      // Add checkmark for completed steps
+      const circle = step.querySelector('.tbc-progress__step-circle');
+      if (circle && !circle.textContent.includes('✓')) {
+        circle.textContent = '✓';
+      }
+    } else {
+      const circle = step.querySelector('.tbc-progress__step-circle');
+      if (circle) {
+        circle.textContent = stepNumber;
+      }
+    }
+  });
+  
+  // Populate servers when reaching step 4
+  if (currentStep === 4) {
+    populateServers();
+  }
+  
+  // Initialize calendar when reaching step 6
+  if (currentStep === 6) {
+    setTimeout(() => renderCalendar(), 50);
+  }
+  
+  // Show all time slots when reaching step 7
+  if (currentStep === 7) {
+    showAllTimeSlots();
+    updatePSTTime();
+  }
+}
+
+// Update current PST time display
+function updatePSTTime() {
+  const pstTimeEl = document.getElementById('current-pst-time');
+  if (!pstTimeEl) return;
+  
+  const now = new Date();
+  const pstTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+  
+  const hours = pstTime.getHours();
+  const minutes = pstTime.getMinutes().toString().padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  const displayHours = hours % 12 || 12;
+  
+  pstTimeEl.textContent = `Current PST Time: ${displayHours}:${minutes} ${ampm}`;
+  
+  // Update every minute
+  setTimeout(updatePSTTime, 60000);
+}
+
+// Populate servers based on region
+function populateServers() {
+  const region = document.getElementById('region')?.value;
+  const serverGrid = document.getElementById('server-grid');
+  
+  if (!serverGrid) return;
+  
+  serverGrid.innerHTML = '';
+  
+  const servers = {
+    'NA': ['Nightslayer', 'Dreamscythe'],
+    'EU': ['Spineshatter', 'Thunderstrike'],
+    'OCE': ['Nightslayer', 'Dreamscythe'] // Default to NA servers for Oceanic
+  };
+  
+  const regionServers = servers[region] || servers['NA'];
+  
+  regionServers.forEach(server => {
+    const serverId = server.toLowerCase().replace(/\s+/g, '-');
+    const option = document.createElement('div');
+    option.className = 'tbc-server-option';
+    option.innerHTML = `
+      <input type="radio" name="server" value="${server}" id="server-${serverId}">
+      <label for="server-${serverId}" class="tbc-server-label">${server}</label>
+    `;
+    serverGrid.appendChild(option);
+  });
+}
+
+// Calendar Functions
+function renderCalendar() {
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const monthEl = document.getElementById('calendar-month');
+  const gridEl = document.getElementById('calendar-grid');
+  
+  if (!monthEl || !gridEl) return;
+  
+  monthEl.textContent = `${monthNames[currentMonth.getMonth()]} ${currentMonth.getFullYear()}`;
+  
+  gridEl.innerHTML = '';
+  
+  ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach(day => {
+    const header = document.createElement('div');
+    header.className = 'tbc-calendar__day-header';
+    header.textContent = day;
+    gridEl.appendChild(header);
+  });
+  
+  const year = currentMonth.getFullYear();
+  const month = currentMonth.getMonth();
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  for (let i = 0; i < firstDay; i++) {
+    const empty = document.createElement('div');
+    gridEl.appendChild(empty);
+  }
+  
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(year, month, day);
+    const dayEl = document.createElement('div');
+    dayEl.className = 'tbc-calendar__day';
+    dayEl.textContent = day;
+    
+    if (date >= today) {
+      dayEl.classList.add('tbc-calendar__day--available');
+      dayEl.onclick = () => selectDate(date);
+      
+      if (selectedDate && date.toDateString() === selectedDate.toDateString()) {
+        dayEl.classList.add('tbc-calendar__day--selected');
+      }
+    } else {
+      dayEl.classList.add('tbc-calendar__day--disabled');
+    }
+    
+    gridEl.appendChild(dayEl);
+  }
+}
+
+function changeMonth(delta) {
+  currentMonth.setMonth(currentMonth.getMonth() + delta);
+  renderCalendar();
+}
+
+function selectDate(date) {
+  selectedDate = date;
+  selectedTime = null;
+  renderCalendar();
+  
+  // Enable the next button to go to time selection
+  const nextBtn = document.getElementById('date-next-btn');
+  if (nextBtn) {
+    nextBtn.disabled = false;
+  }
+}
+
+function showAllTimeSlots() {
+  const container = document.getElementById('time-slots-full');
+  const dateDisplay = document.getElementById('selected-date-display');
+  
+  if (!container || !selectedDate) return;
+  
+  // Display selected date
+  if (dateDisplay) {
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    dateDisplay.textContent = selectedDate.toLocaleDateString('en-US', options);
+  }
+  
+  container.innerHTML = '';
+  
+  // Generate time slots from 9 AM to 11 PM PST (every hour)
+  const times = [
+    '9:00 AM PST', '10:00 AM PST', '11:00 AM PST', '12:00 PM PST',
+    '1:00 PM PST', '2:00 PM PST', '3:00 PM PST', '4:00 PM PST',
+    '5:00 PM PST', '6:00 PM PST', '7:00 PM PST', '8:00 PM PST',
+    '9:00 PM PST', '10:00 PM PST', '11:00 PM PST'
+  ];
+  
+  times.forEach(time => {
+    const option = document.createElement('div');
+    option.className = 'tbc-time-option';
+    const timeId = time.replace(/[: ]/g, '');
+    option.innerHTML = `
+      <input type="radio" name="time" value="${time}" id="time-${timeId}">
+      <label for="time-${timeId}" class="tbc-time-label">${time}</label>
+    `;
+    container.appendChild(option);
+    
+    const input = option.querySelector('input');
+    input.onchange = () => {
+      selectedTime = time;
+      document.getElementById('submit-booking').disabled = false;
+    };
+  });
+}
+
+function validateStep(step) {
+  if (step === 1) {
+    const name = document.getElementById('character-name').value;
+    const region = document.getElementById('region').value;
+    const faction = document.querySelector('input[name="faction"]:checked');
+    if (!name || !region || !faction) {
+      alert('Please fill in all fields');
+      return false;
+    }
+  }
+  if (step === 2) {
+    const classSelected = document.querySelector('input[name="class"]:checked');
+    if (!classSelected) {
+      alert('Please select a class');
+      return false;
+    }
+  }
+  if (step === 3) {
+    const bracket = document.querySelector('input[name="bracket"]:checked');
+    const partners = document.querySelectorAll('input[name="partners"]:checked');
+    if (!bracket) {
+      alert('Please select a bracket type');
+      return false;
+    }
+    if (partners.length === 0) {
+      alert('Please select at least one partner class');
+      return false;
+    }
+  }
+  if (step === 4) {
+    const server = document.querySelector('input[name="server"]:checked');
+    if (!server) {
+      alert('Please select a server');
+      return false;
+    }
+  }
+  if (step === 5) {
+    const hours = document.querySelector('input[name="hours"]:checked');
+    if (!hours) {
+      alert('Please select session duration');
+      return false;
+    }
+    selectedHours = hours.value;
+    selectedPrice = hours.getAttribute('data-price');
+  }
+  return true;
+}
+
+document.getElementById('submit-booking')?.addEventListener('click', async function(e) {
+  e.preventDefault();
+  
+  // Validate contact info
+  const email = document.getElementById('user-email')?.value;
+  const discord = document.getElementById('discord-handle')?.value;
+  
+  if (!email || !discord) {
+    alert('Please fill in your email and Discord handle');
+    return;
+  }
+  
+  if (!selectedDate || !selectedTime) {
+    alert('Please select a date and time from the calendar');
+    return;
+  }
+  
+  const partners = Array.from(document.querySelectorAll('input[name="partners"]:checked')).map(el => el.value);
+  
+  const bookingData = {
+    character: document.getElementById('character-name').value,
+    region: document.getElementById('region').value,
+    faction: document.querySelector('input[name="faction"]:checked')?.value,
+    class: document.querySelector('input[name="class"]:checked')?.value,
+    bracket: document.querySelector('input[name="bracket"]:checked')?.value,
+    partners: partners.join(', '),
+    server: document.querySelector('input[name="server"]:checked')?.value,
+    hours: selectedHours,
+    price: selectedPrice,
+    email: email,
+    discord: discord,
+    preferredDateTime: `${selectedDate.toLocaleDateString('en-US')} at ${selectedTime}`,
+    notes: document.getElementById('booking-notes')?.value || 'None',
+    timestamp: new Date().toISOString()
+  };
+  
+  console.log('Booking Request:', bookingData);
+  
+  // Store for confirmation page
+  localStorage.setItem('tbcBooking', JSON.stringify(bookingData));
+  
+  // Show loading state
+  const submitBtn = this;
+  const originalText = submitBtn.innerHTML;
+  submitBtn.innerHTML = '⏳ Submitting...';
+  submitBtn.disabled = true;
+  
+  // Send to Google Sheets webhook
+  const webhookUrl = '{{ section.settings.webhook_url }}';
+  
+  console.log('Webhook URL:', webhookUrl);
+  
+  // Check if webhook is configured
+  if (!webhookUrl || webhookUrl.trim() === '' || webhookUrl.includes('myshopify')) {
+    console.error('Webhook URL not configured or invalid');
+    submitBtn.innerHTML = originalText;
+    submitBtn.disabled = false;
+    alert('⚠️ Booking system not fully configured.\n\nYour booking has been saved, but please email us directly at pvpchads.com@gmail.com with your booking details:\n\nCharacter: ' + bookingData.character + '\nClass: ' + bookingData.class + '\nBracket: ' + bookingData.bracket + '\nTime: ' + bookingData.preferredDateTime + '\nDiscord: ' + bookingData.discord);
+    return;
+  }
+  
+  try {
+    // Send to Google Apps Script
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(bookingData),
+      // Note: Google Apps Script returns opaque response with no-cors, but it still works
+      mode: 'no-cors'
+    });
+    
+    console.log('Webhook response:', response);
+    
+    // With no-cors, we can't read the response, but if no error was thrown, it worked
+    // Show success modal
+    showSuccessModal(bookingData);
+    
+  } catch (error) {
+    console.error('Webhook error:', error);
+    submitBtn.innerHTML = originalText;
+    submitBtn.disabled = false;
+    
+    // Show error but still save locally
+    if (confirm('⚠️ Connection error occurred.\n\nYour booking was saved locally. Would you like to try again, or contact us directly?\n\nClick OK to try again, Cancel to get contact info.')) {
+      // Retry
+      submitBtn.click();
+    } else {
+      alert('Please email us at pvpchads.com@gmail.com or join our Discord:\nhttps://discord.gg/K7cEBTPjNA\n\nBooking details:\nCharacter: ' + bookingData.character + '\nDiscord: ' + bookingData.discord);
+    }
+  }
+});
+
+// Success Modal
+function showSuccessModal(data) {
+  const modal = document.createElement('div');
+  modal.id = 'booking-success-modal';
+  modal.innerHTML = `
+    <div class="success-modal-overlay"></div>
+    <div class="success-modal-content">
+      <div class="success-confetti"></div>
+      <div class="success-icon">🎉</div>
+      <h2 class="success-title">Booking Submitted!</h2>
+      <p class="success-message">
+        Your <strong>${data.hours}-hour ${data.bracket} coaching session</strong> has been requested!
+      </p>
+      
+      <div class="success-payment">
+        <div class="success-payment-icon">💳</div>
+        <h3 class="success-payment-title">Complete Payment to Confirm</h3>
+        <p class="success-payment-amount">Total: <strong>$${data.price}</strong></p>
+        <p class="success-payment-text">Secure checkout with Stripe - accepts all major cards, Apple Pay, Google Pay</p>
+        <button class="success-payment-btn" onclick="processStripePayment()">
+          Pay $${data.price} Securely →
+        </button>
+        <p class="success-payment-note">Powered by Stripe - Your payment info is encrypted and secure</p>
+      </div>
+      
+      <div class="success-details">
+        <div class="success-detail">
+          <span class="success-detail-label">Character:</span>
+          <span class="success-detail-value">${data.character}</span>
+        </div>
+        <div class="success-detail">
+          <span class="success-detail-label">When:</span>
+          <span class="success-detail-value">${data.preferredDateTime}</span>
+        </div>
+        <div class="success-detail">
+          <span class="success-detail-label">Price:</span>
+          <span class="success-detail-value">$${data.price}</span>
+        </div>
+      </div>
+      
+      <div class="success-discord">
+        <div class="success-discord-icon">💬</div>
+        <h3 class="success-discord-title">Join Our PVP Community!</h3>
+        <p class="success-discord-text">Connect with other arena players, get tips, and stay updated on your session</p>
+        <a href="https://discord.gg/K7cEBTPjNA" target="_blank" class="success-discord-btn">
+          Join Discord Server →
+        </a>
+      </div>
+      
+      <div class="success-next-steps">
+        <h4 class="success-steps-title">What Happens Next:</h4>
+        <ol class="success-steps-list">
+          <li><strong>Complete payment</strong> via Stripe checkout above</li>
+          <li>We'll contact you on Discord (<strong>${data.discord}</strong>) within 24 hours</li>
+          <li>Confirm your session time and coach availability</li>
+          <li>Get your calendar invite and prep materials</li>
+        </ol>
+      </div>
+      <button class="success-close-btn" onclick="closeSuccessModal()">Close</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  
+  // Trigger confetti animation
+  setTimeout(() => {
+    createConfetti();
+  }, 100);
+  
+  // Lock body scroll
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSuccessModal() {
+  const modal = document.getElementById('booking-success-modal');
+  if (modal) {
+    modal.remove();
+    document.body.style.overflow = '';
+  }
+}
+
+function createConfetti() {
+  const container = document.querySelector('.success-confetti');
+  if (!container) return;
+  
+  for (let i = 0; i < 50; i++) {
+    const confetti = document.createElement('div');
+    confetti.className = 'confetti-piece';
+    confetti.style.left = Math.random() * 100 + '%';
+    confetti.style.animationDelay = (Math.random() * 3) + 's';
+    confetti.style.backgroundColor = ['#00ff41', '#00d4ff', '#ffd700', '#ff0080'][Math.floor(Math.random() * 4)];
+    container.appendChild(confetti);
+  }
+}
+
+function processStripePayment() {
+  const bookingData = JSON.parse(localStorage.getItem('tbcBooking'));
+  
+  if (!bookingData) {
+    alert('Booking data not found. Please try booking again.');
+    return;
+  }
+  
+  // Stripe Payment Links - mapped to hours
+  const stripeLinks = {
+    '1': '{{ section.settings.stripe_link_1hr }}',
+    '2': '{{ section.settings.stripe_link_2hr }}',
+    '3': '{{ section.settings.stripe_link_3hr }}',
+    '4': '{{ section.settings.stripe_link_4hr }}'
+  };
+  
+  const paymentUrl = stripeLinks[bookingData.hours.toString()];
+  
+  if (!paymentUrl || paymentUrl.trim() === '') {
+    alert('Payment link not configured for ' + bookingData.hours + ' hour session. Please contact us at pvpchads.com@gmail.com');
+    return;
+  }
+  
+  // Store payment initiation timestamp
+  bookingData.paymentInitiated = new Date().toISOString();
+  localStorage.setItem('tbcBooking', JSON.stringify(bookingData));
+  
+  // Redirect to Stripe checkout
+  window.location.href = paymentUrl;
+}
+
+</script>
+
+{% schema %}
+{
+  "name": "TBC Hero Booking",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Background Image"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "TBC Anniversary Arena Coaching"
+    },
+    {
+      "type": "textarea",
+      "id": "subtitle",
+      "label": "Subtitle",
+      "default": "Experience coaching privately or live on stream from top players. Master arena strategies, perfect your rotation, and climb the ratings with personalized 1-on-1 sessions."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_cta",
+      "label": "Show CTA Button",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "cta_text",
+      "label": "CTA Text",
+      "default": "Learn More"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "CTA Link"
+    },
+    {
+      "type": "header",
+      "content": "Google Sheets Integration"
+    },
+    {
+      "type": "url",
+      "id": "webhook_url",
+      "label": "Google Apps Script Webhook URL",
+      "info": "Deploy the Google Apps Script from the google-apps-script folder, then paste the Web App URL here"
+    },
+    {
+      "type": "header",
+      "content": "Stripe Payment Links"
+    },
+    {
+      "type": "url",
+      "id": "stripe_link_1hr",
+      "label": "Stripe Link - 1 Hour ($65)",
+      "info": "Paste: https://buy.stripe.com/test_3cI6oB9U52RB0Axbou87K00"
+    },
+    {
+      "type": "url",
+      "id": "stripe_link_2hr",
+      "label": "Stripe Link - 2 Hours ($120)",
+      "info": "Paste: https://buy.stripe.com/test_bJe9ANfep9fZ82Zbou87K01"
+    },
+    {
+      "type": "url",
+      "id": "stripe_link_3hr",
+      "label": "Stripe Link - 3 Hours ($170)",
+      "info": "Paste: https://buy.stripe.com/test_7sYdR38Q11Nxcjf78e87K02"
+    },
+    {
+      "type": "url",
+      "id": "stripe_link_4hr",
+      "label": "Stripe Link - 4 Hours ($220)",
+      "info": "Paste: https://buy.stripe.com/test_fZufZb1nzbo7bfb2RY87K03"
+    }
+  ],
+  "presets": [
+    {
+      "name": "TBC Hero Booking"
+    }
+  ]
+}
+{% endschema %}

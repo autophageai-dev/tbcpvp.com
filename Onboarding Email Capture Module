@@ -1,0 +1,851 @@
+{% comment %}
+  TBC ONBOARDING MODAL
+  3-step onboarding flow for new visitors
+  - Step 1: Goal selection (Duelist/Glad/Rank 1)
+  - Step 2: Email capture
+  - Step 3: Welcome message + CTAs
+{% endcomment %}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&family=Rubik:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  /* Onboarding Modal */
+  .tbc-onboarding {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .tbc-onboarding.active {
+    display: flex;
+  }
+
+  .tbc-onboarding__backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    animation: backdropFadeIn 0.4s ease;
+  }
+
+  @keyframes backdropFadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .tbc-onboarding__modal {
+    position: relative;
+    max-width: 700px;
+    width: 100%;
+    background: linear-gradient(135deg, rgba(0, 30, 15, 0.95) 0%, rgba(0, 0, 0, 0.95) 100%);
+    border: 3px solid #00ff41;
+    border-radius: 24px;
+    padding: 50px;
+    box-shadow: 0 0 100px rgba(0, 255, 65, 0.6);
+    animation: modalSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+  }
+
+  @keyframes modalSlideIn {
+    from {
+      opacity: 0;
+      transform: scale(0.9) translateY(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  .tbc-onboarding__close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+  }
+
+  .tbc-onboarding__close:hover {
+    background: rgba(255, 0, 0, 0.2);
+    border-color: #ff0000;
+    color: #ff0000;
+    transform: rotate(90deg);
+  }
+
+  /* Progress Dots */
+  .tbc-onboarding__progress {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 40px;
+  }
+
+  .tbc-onboarding__dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+  }
+
+  .tbc-onboarding__dot.active {
+    background: #00ff41;
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.6);
+    width: 32px;
+    border-radius: 6px;
+  }
+
+  /* Steps */
+  .tbc-onboarding__step {
+    display: none;
+  }
+
+  .tbc-onboarding__step.active {
+    display: block;
+    animation: stepFadeIn 0.4s ease;
+  }
+
+  @keyframes stepFadeIn {
+    from {
+      opacity: 0;
+      transform: translateX(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .tbc-onboarding__title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 42px;
+    font-weight: 900;
+    color: #fff;
+    text-align: center;
+    margin-bottom: 16px;
+    line-height: 1.2;
+  }
+
+  .tbc-onboarding__title-highlight {
+    color: #00ff41;
+    text-shadow: 0 0 30px rgba(0, 255, 65, 0.8);
+  }
+
+  .tbc-onboarding__subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.7);
+    text-align: center;
+    margin-bottom: 40px;
+    line-height: 1.6;
+  }
+
+  /* Goal Cards (Step 1) */
+  .tbc-onboarding__goals {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+
+  .tbc-goal-card {
+    background: rgba(0, 0, 0, 0.6);
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    padding: 32px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .tbc-goal-card:hover {
+    transform: translateY(-8px);
+    border-color: #00ff41;
+    box-shadow: 0 20px 60px rgba(0, 255, 65, 0.4);
+  }
+
+  .tbc-goal-card.selected {
+    border-color: #00ff41;
+    background: rgba(0, 255, 65, 0.1);
+    box-shadow: 0 20px 60px rgba(0, 255, 65, 0.5);
+  }
+
+  .tbc-goal-card__icon {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 20px rgba(0, 255, 65, 0.6));
+    transition: all 0.3s ease;
+  }
+
+  .tbc-goal-card:hover .tbc-goal-card__icon {
+    transform: scale(1.1);
+  }
+
+  .tbc-goal-card.selected .tbc-goal-card__icon {
+    transform: scale(1.15);
+  }
+
+  .tbc-goal-card__title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+
+  .tbc-goal-card__desc {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.6);
+    line-height: 1.5;
+  }
+
+  /* Email Form (Step 2) */
+  .tbc-onboarding__email-form {
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .tbc-onboarding__input {
+    width: 100%;
+    font-family: 'Inter', sans-serif;
+    font-size: 18px;
+    padding: 20px 24px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 3px solid rgba(0, 255, 65, 0.3);
+    border-radius: 12px;
+    color: #fff;
+    margin-bottom: 24px;
+    transition: all 0.3s ease;
+  }
+
+  .tbc-onboarding__input:focus {
+    outline: none;
+    border-color: #00ff41;
+    box-shadow: 0 0 30px rgba(0, 255, 65, 0.4);
+  }
+
+  .tbc-onboarding__input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .tbc-onboarding__note {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.5);
+    text-align: center;
+    margin-top: 16px;
+    font-style: italic;
+  }
+
+  /* Welcome Message (Step 3) */
+  .tbc-onboarding__welcome-icon {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 32px;
+    display: block;
+    filter: drop-shadow(0 0 40px rgba(0, 255, 65, 0.8));
+    animation: iconFloat 3s ease-in-out infinite;
+  }
+
+  @keyframes iconFloat {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .tbc-onboarding__message {
+    font-family: 'Inter', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    text-align: center;
+    line-height: 1.8;
+    margin-bottom: 40px;
+  }
+
+  .tbc-onboarding__features {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-bottom: 40px;
+  }
+
+  .tbc-onboarding__feature {
+    text-align: center;
+  }
+
+  .tbc-onboarding__feature-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+  }
+
+  .tbc-onboarding__feature-title {
+    font-family: 'Rubik', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: #00ff41;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .tbc-onboarding__feature-desc {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+    line-height: 1.4;
+  }
+
+  /* Buttons */
+  .tbc-onboarding__buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+  }
+
+  .tbc-onboarding__btn {
+    font-family: 'Rubik', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 18px 40px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .tbc-onboarding__btn--primary {
+    background: #00ff41;
+    color: #000;
+    box-shadow: 0 0 30px rgba(0, 255, 65, 0.5);
+  }
+
+  .tbc-onboarding__btn--primary:hover {
+    background: #00d435;
+    transform: translateY(-3px);
+    box-shadow: 0 0 50px rgba(0, 255, 65, 0.7);
+  }
+
+  .tbc-onboarding__btn--secondary {
+    background: transparent;
+    color: #fff;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .tbc-onboarding__btn--secondary:hover {
+    border-color: #00ff41;
+    color: #00ff41;
+    transform: translateY(-3px);
+  }
+
+  .tbc-onboarding__btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .tbc-onboarding__btn:disabled:hover {
+    transform: none;
+  }
+
+  /* Mobile Responsive */
+  @media (max-width: 768px) {
+    .tbc-onboarding {
+      padding: 0;
+      align-items: flex-end;
+    }
+
+    .tbc-onboarding__modal {
+      max-width: 100%;
+      width: 100%;
+      max-height: 95vh;
+      overflow-y: auto;
+      padding: 28px 20px;
+      border-radius: 24px 24px 0 0;
+      margin: 0;
+      border-bottom: none;
+    }
+
+    .tbc-onboarding__close {
+      top: 16px;
+      right: 16px;
+      width: 36px;
+      height: 36px;
+      font-size: 18px;
+    }
+
+    .tbc-onboarding__progress {
+      margin-bottom: 28px;
+    }
+
+    .tbc-onboarding__title {
+      font-size: 28px;
+      margin-bottom: 12px;
+    }
+
+    .tbc-onboarding__subtitle {
+      font-size: 15px;
+      margin-bottom: 28px;
+    }
+
+    .tbc-onboarding__goals {
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .tbc-goal-card {
+      padding: 20px 16px;
+      flex-direction: row;
+      text-align: left;
+      gap: 16px;
+    }
+
+    .tbc-goal-card__icon {
+      width: 60px;
+      height: 60px;
+      flex-shrink: 0;
+    }
+
+    .tbc-goal-card__content {
+      flex: 1;
+    }
+
+    .tbc-goal-card__title {
+      font-size: 18px;
+      margin-bottom: 4px;
+      text-align: left;
+    }
+
+    .tbc-goal-card__desc {
+      font-size: 12px;
+      text-align: left;
+    }
+
+    .tbc-onboarding__email-form {
+      margin-bottom: 24px;
+    }
+
+    .tbc-onboarding__input {
+      font-size: 16px;
+      padding: 16px 18px;
+      margin-bottom: 16px;
+    }
+
+    .tbc-onboarding__note {
+      font-size: 12px;
+      margin-top: 12px;
+    }
+
+    .tbc-onboarding__welcome-icon {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 24px;
+    }
+
+    .tbc-onboarding__message {
+      font-size: 15px;
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+
+    .tbc-onboarding__features {
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .tbc-onboarding__feature {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-align: left;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 14px;
+      border-radius: 12px;
+    }
+
+    .tbc-onboarding__feature-icon {
+      font-size: 32px;
+      margin-bottom: 0;
+      flex-shrink: 0;
+    }
+
+    .tbc-onboarding__feature-content {
+      flex: 1;
+    }
+
+    .tbc-onboarding__feature-title {
+      font-size: 13px;
+      margin-bottom: 4px;
+      text-align: left;
+    }
+
+    .tbc-onboarding__feature-desc {
+      font-size: 12px;
+      text-align: left;
+    }
+
+    .tbc-onboarding__buttons {
+      flex-direction: column;
+      gap: 12px;
+      padding-bottom: 20px;
+    }
+
+    .tbc-onboarding__btn {
+      width: 100%;
+      padding: 16px 28px;
+      font-size: 15px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .tbc-onboarding__modal {
+      padding: 24px 16px;
+      max-height: 92vh;
+    }
+
+    .tbc-onboarding__title {
+      font-size: 24px;
+    }
+
+    .tbc-onboarding__subtitle {
+      font-size: 14px;
+    }
+
+    .tbc-goal-card__icon {
+      width: 50px;
+      height: 50px;
+    }
+
+    .tbc-goal-card__title {
+      font-size: 16px;
+    }
+
+    .tbc-goal-card__desc {
+      font-size: 11px;
+    }
+
+    .tbc-onboarding__welcome-icon {
+      width: 70px;
+      height: 70px;
+    }
+
+    .tbc-onboarding__message {
+      font-size: 14px;
+    }
+
+    .tbc-onboarding__feature-icon {
+      font-size: 28px;
+    }
+  }
+</style>
+
+<div class="tbc-onboarding" id="tbc-onboarding">
+  <div class="tbc-onboarding__backdrop"></div>
+  
+  <div class="tbc-onboarding__modal">
+    <button class="tbc-onboarding__close" onclick="closeOnboarding()" aria-label="Close">&times;</button>
+    
+    <!-- Progress Dots -->
+    <div class="tbc-onboarding__progress">
+      <div class="tbc-onboarding__dot active" data-step="1"></div>
+      <div class="tbc-onboarding__dot" data-step="2"></div>
+      <div class="tbc-onboarding__dot" data-step="3"></div>
+    </div>
+
+    <!-- STEP 1: Goal Selection -->
+    <div class="tbc-onboarding__step active" data-step="1">
+      <h2 class="tbc-onboarding__title">
+        What <span class="tbc-onboarding__title-highlight">Title</span> Do You Want?
+      </h2>
+      <p class="tbc-onboarding__subtitle">
+        Choose your arena goal and we'll help you achieve it
+      </p>
+
+      <div class="tbc-onboarding__goals">
+        <div class="tbc-goal-card" onclick="selectGoal('Duelist')" data-goal="Duelist">
+          <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/duelist.png?v=1766454496" alt="Duelist" class="tbc-goal-card__icon">
+          <div class="tbc-goal-card__content">
+            <div class="tbc-goal-card__title">Duelist</div>
+            <div class="tbc-goal-card__desc">2200+ Rating</div>
+          </div>
+        </div>
+
+        <div class="tbc-goal-card" onclick="selectGoal('Gladiator')" data-goal="Gladiator">
+          <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/r2.png?v=1766454501" alt="Gladiator" class="tbc-goal-card__icon">
+          <div class="tbc-goal-card__content">
+            <div class="tbc-goal-card__title">Gladiator</div>
+            <div class="tbc-goal-card__desc">Top 0.5% of Teams</div>
+          </div>
+        </div>
+
+        <div class="tbc-goal-card" onclick="selectGoal('Rank 1')" data-goal="Rank 1">
+          <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/r1.png?v=1766454505" alt="Rank 1" class="tbc-goal-card__icon">
+          <div class="tbc-goal-card__content">
+            <div class="tbc-goal-card__title">Rank 1</div>
+            <div class="tbc-goal-card__desc">Top 0.1% of Teams</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tbc-onboarding__buttons">
+        <button class="tbc-onboarding__btn tbc-onboarding__btn--primary" id="goal-next-btn" disabled onclick="nextOnboardingStep(2)">
+          Continue →
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 2: Email Capture -->
+    <div class="tbc-onboarding__step" data-step="2">
+      <h2 class="tbc-onboarding__title">
+        Almost <span class="tbc-onboarding__title-highlight">There!</span>
+      </h2>
+      <p class="tbc-onboarding__subtitle">
+        Enter your email to unlock exclusive arena resources
+      </p>
+
+      <div class="tbc-onboarding__email-form">
+        <input 
+          type="email" 
+          class="tbc-onboarding__input" 
+          id="onboarding-email"
+          placeholder="your.email@example.com"
+          required
+        >
+        <p class="tbc-onboarding__note">
+          We'll send you free guides, tier lists, and coaching tips. Unsubscribe anytime.
+        </p>
+      </div>
+
+      <div class="tbc-onboarding__buttons">
+        <button class="tbc-onboarding__btn tbc-onboarding__btn--secondary" onclick="prevOnboardingStep(1)">
+          ← Back
+        </button>
+        <button class="tbc-onboarding__btn tbc-onboarding__btn--primary" onclick="submitEmail()">
+          Get Started →
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 3: Welcome -->
+    <div class="tbc-onboarding__step" data-step="3">
+      <img src="" alt="Goal Icon" class="tbc-onboarding__welcome-icon" id="welcome-icon">
+      
+      <h2 class="tbc-onboarding__title">
+        Welcome, Future <span class="tbc-onboarding__title-highlight" id="welcome-goal">Champion</span>!
+      </h2>
+      
+      <p class="tbc-onboarding__message" id="welcome-message">
+        This website has tons of arena resources, tools, and the ability to book coaching with the best players in the world. We love TBC arena and we are glad you do too!
+      </p>
+
+      <div class="tbc-onboarding__features">
+        <div class="tbc-onboarding__feature">
+          <div class="tbc-onboarding__feature-icon">📚</div>
+          <div class="tbc-onboarding__feature-content">
+            <div class="tbc-onboarding__feature-title">Free Guides</div>
+            <div class="tbc-onboarding__feature-desc">Tier lists, comp breakdowns, class guides</div>
+          </div>
+        </div>
+        <div class="tbc-onboarding__feature">
+          <div class="tbc-onboarding__feature-icon">🧮</div>
+          <div class="tbc-onboarding__feature-content">
+            <div class="tbc-onboarding__feature-title">Arena Tools</div>
+            <div class="tbc-onboarding__feature-desc">Calculators, planners, team builders</div>
+          </div>
+        </div>
+        <div class="tbc-onboarding__feature">
+          <div class="tbc-onboarding__feature-icon">🎯</div>
+          <div class="tbc-onboarding__feature-content">
+            <div class="tbc-onboarding__feature-title">1-on-1 Coaching</div>
+            <div class="tbc-onboarding__feature-desc">Multi-Glad & Rank 1 coaches</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tbc-onboarding__buttons">
+        <button class="tbc-onboarding__btn tbc-onboarding__btn--secondary" onclick="closeOnboarding()">
+          Browse Resources
+        </button>
+        <a href="/#booking" class="tbc-onboarding__btn tbc-onboarding__btn--primary" onclick="closeOnboarding()">
+          Start Here →
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  let currentOnboardingStep = 1;
+  let selectedGoal = '';
+  let goalIcons = {
+    'Duelist': 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/duelist.png?v=1766454496',
+    'Gladiator': 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/r2.png?v=1766454501',
+    'Rank 1': 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/r1.png?v=1766454505'
+  };
+
+  // Check if onboarding should show
+  window.addEventListener('DOMContentLoaded', function() {
+    if (!localStorage.getItem('tbcOnboardingComplete')) {
+      setTimeout(showOnboarding, 800); // Show after slight delay
+    }
+  });
+
+  window.showOnboarding = function() {
+    document.getElementById('tbc-onboarding').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.closeOnboarding = function() {
+    document.getElementById('tbc-onboarding').classList.remove('active');
+    document.body.style.overflow = '';
+    localStorage.setItem('tbcOnboardingComplete', 'true');
+    
+    if (selectedGoal) {
+      localStorage.setItem('userGoal', selectedGoal);
+    }
+  };
+
+  window.selectGoal = function(goal) {
+    selectedGoal = goal;
+    
+    // Update UI
+    document.querySelectorAll('.tbc-goal-card').forEach(card => {
+      card.classList.remove('selected');
+    });
+    document.querySelector(`[data-goal="${goal}"]`).classList.add('selected');
+    
+    // Enable next button
+    document.getElementById('goal-next-btn').disabled = false;
+  };
+
+  window.nextOnboardingStep = function(step) {
+    currentOnboardingStep = step;
+    updateOnboardingStep();
+  };
+
+  window.prevOnboardingStep = function(step) {
+    currentOnboardingStep = step;
+    updateOnboardingStep();
+  };
+
+  function updateOnboardingStep() {
+    // Hide all steps
+    document.querySelectorAll('.tbc-onboarding__step').forEach(step => {
+      step.classList.remove('active');
+    });
+    
+    // Show current step
+    document.querySelector(`.tbc-onboarding__step[data-step="${currentOnboardingStep}"]`).classList.add('active');
+    
+    // Update progress dots
+    document.querySelectorAll('.tbc-onboarding__dot').forEach((dot, index) => {
+      dot.classList.toggle('active', index + 1 === currentOnboardingStep);
+    });
+  }
+
+  window.submitEmail = function() {
+    const emailInput = document.getElementById('onboarding-email');
+    const email = emailInput.value.trim();
+    
+    // Basic email validation
+    if (!email || !email.includes('@')) {
+      alert('Please enter a valid email address');
+      emailInput.focus();
+      return;
+    }
+    
+    // Store email
+    localStorage.setItem('userEmail', email);
+    
+    // Update welcome message
+    const welcomeGoalEl = document.getElementById('welcome-goal');
+    const welcomeMessageEl = document.getElementById('welcome-message');
+    const welcomeIconEl = document.getElementById('welcome-icon');
+    
+    welcomeGoalEl.textContent = selectedGoal;
+    welcomeIconEl.src = goalIcons[selectedGoal];
+    
+    // Personalized messages
+    const messages = {
+      'Duelist': 'You\'re on the path to 2200+ rating! This website has tons of arena resources, tools, and the ability to book coaching with the best players in the world. We love TBC arena and we are glad you do too!',
+      'Gladiator': 'Elite PvP status awaits you! This website has tons of arena resources, tools, and the ability to book coaching with Multi-Gladiators and Rank 1 players. We love TBC arena and we are glad you do too!',
+      'Rank 1': 'You\'re aiming for the pinnacle of PvP! This website has tons of arena resources, tools, and the ability to book coaching with Rank 1 players who\'ve been exactly where you want to be. We love TBC arena and we are glad you do too!'
+    };
+    
+    welcomeMessageEl.textContent = messages[selectedGoal] || messages['Gladiator'];
+    
+    // Move to step 3
+    nextOnboardingStep(3);
+  };
+})();
+</script>
+
+{% schema %}
+{
+  "name": "TBC Onboarding Modal",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Onboarding Flow Settings"
+    },
+    {
+      "type": "paragraph",
+      "content": "This modal appears once to new visitors. It captures their goal and email. Once completed, it won't show again (stored in localStorage)."
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_onboarding",
+      "label": "Enable Onboarding Modal",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "TBC Onboarding Modal"
+    }
+  ]
+}
+{% endschema %}

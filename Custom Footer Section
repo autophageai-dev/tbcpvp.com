@@ -1,0 +1,571 @@
+{% comment %}
+  CHAD FOOTER - TBC Style
+{% endcomment %}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Rubik:wght@500;600&display=swap" rel="stylesheet">
+
+<style>
+  .chad-footer {
+    background: #000;
+    border-top: 2px solid #00ff41;
+    position: relative;
+    padding: 60px 0 30px;
+    margin-top: 0;
+  }
+
+  .chad-footer__glow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: #00ff41;
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.6);
+  }
+
+  .chad-footer__container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  .chad-footer__top {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 60px;
+    margin-bottom: 50px;
+  }
+
+  .chad-footer__brand {
+    max-width: 400px;
+  }
+
+  .chad-footer__logo-image {
+    max-width: {{ section.settings.logo_width }}px;
+    height: auto;
+    margin-bottom: 20px;
+  }
+
+  .chad-footer__description {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    color: #a0a0a0;
+    line-height: 1.7;
+    margin-bottom: 25px;
+  }
+
+  .chad-footer__social {
+    display: flex;
+    gap: 15px;
+  }
+
+  .chad-footer__social-link {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 255, 65, 0.1);
+    border: 1px solid rgba(0, 255, 65, 0.3);
+    border-radius: 8px;
+    color: #00ff41;
+    text-decoration: none;
+    font-size: 18px;
+    transition: all 0.3s ease;
+  }
+
+  .chad-footer__social-link:hover {
+    background: rgba(0, 255, 65, 0.2);
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.4);
+    transform: translateY(-3px);
+  }
+
+  .chad-footer__section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .chad-footer__heading {
+    font-family: 'Rubik', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: #00ff41;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+  }
+
+  .chad-footer__links {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .chad-footer__link {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: #c0c0c0;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: inline-block;
+  }
+
+  .chad-footer__link:hover {
+    color: #00ff41;
+    text-shadow: 0 0 10px rgba(0, 255, 65, 0.6);
+    transform: translateX(5px);
+  }
+
+  .chad-footer__divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0, 255, 65, 0.3), transparent);
+    margin: 40px 0 30px;
+  }
+
+  .chad-footer__trust {
+    margin-bottom: 30px;
+  }
+
+  .chad-footer__trust-title {
+    font-family: 'Rubik', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #00ff41;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .chad-footer__badges {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    flex-wrap: wrap;
+  }
+
+  .chad-footer__badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    background: rgba(0, 255, 65, 0.05);
+    border: 1px solid rgba(0, 255, 65, 0.2);
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #c0c0c0;
+    transition: all 0.3s ease;
+  }
+
+  .chad-footer__badge:hover {
+    background: rgba(0, 255, 65, 0.1);
+    border-color: rgba(0, 255, 65, 0.4);
+  }
+
+  .chad-footer__badge-icon {
+    font-size: 20px;
+  }
+
+  .chad-footer__bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 25px;
+    border-top: 1px solid rgba(0, 255, 65, 0.2);
+  }
+
+  .chad-footer__copyright {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    color: #808080;
+  }
+
+  .chad-footer__legal {
+    display: flex;
+    gap: 20px;
+  }
+
+  .chad-footer__legal-link {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    color: #808080;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+
+  .chad-footer__legal-link:hover {
+    color: #00ff41;
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .chad-footer__top {
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+    }
+
+    .chad-footer__brand {
+      grid-column: 1 / -1;
+      max-width: 100%;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .chad-footer {
+      padding: 40px 0 20px;
+      margin-top: 60px;
+    }
+
+    .chad-footer__container {
+      padding: 0 20px;
+    }
+
+    .chad-footer__top {
+      grid-template-columns: 1fr;
+      gap: 35px;
+    }
+
+    .chad-footer__brand {
+      text-align: center;
+      margin: 0 auto;
+    }
+
+    .chad-footer__social {
+      justify-content: center;
+    }
+
+    .chad-footer__section {
+      text-align: center;
+    }
+
+    .chad-footer__links {
+      align-items: center;
+    }
+
+    .chad-footer__badges {
+      gap: 15px;
+    }
+
+    .chad-footer__badge {
+      padding: 10px 16px;
+      font-size: 12px;
+    }
+
+    .chad-footer__bottom {
+      flex-direction: column;
+      gap: 15px;
+      text-align: center;
+    }
+
+    .chad-footer__legal {
+      flex-direction: column;
+      gap: 10px;
+    }
+  }
+</style>
+
+<footer class="chad-footer">
+  <div class="chad-footer__glow"></div>
+  
+  <div class="chad-footer__container">
+    
+    <div class="chad-footer__top">
+      
+      <!-- Brand Column -->
+      <div class="chad-footer__brand">
+        {% if section.settings.logo != blank %}
+          {{ section.settings.logo | image_url: width: 600 | image_tag: class: 'chad-footer__logo-image', loading: 'lazy' }}
+        {% endif %}
+        <p class="chad-footer__description">{{ section.settings.description }}</p>
+        
+        {% if section.settings.show_social %}
+        <div class="chad-footer__social">
+          {% if section.settings.discord_url != blank %}
+          <a href="{{ section.settings.discord_url }}" class="chad-footer__social-link" target="_blank" rel="noopener">
+            <span>💬</span>
+          </a>
+          {% endif %}
+          
+          {% if section.settings.twitter_url != blank %}
+          <a href="{{ section.settings.twitter_url }}" class="chad-footer__social-link" target="_blank" rel="noopener">
+            <span>🐦</span>
+          </a>
+          {% endif %}
+          
+          {% if section.settings.youtube_url != blank %}
+          <a href="{{ section.settings.youtube_url }}" class="chad-footer__social-link" target="_blank" rel="noopener">
+            <span>▶️</span>
+          </a>
+          {% endif %}
+          
+          {% if section.settings.twitch_url != blank %}
+          <a href="{{ section.settings.twitch_url }}" class="chad-footer__social-link" target="_blank" rel="noopener">
+            <span>📺</span>
+          </a>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Quick Links -->
+      <div class="chad-footer__section">
+        <h3 class="chad-footer__heading">Quick Links</h3>
+        <div class="chad-footer__links">
+          {% if section.settings.link1_text != blank and section.settings.link1_url != blank %}
+          <a href="{{ section.settings.link1_url }}" class="chad-footer__link">{{ section.settings.link1_text }}</a>
+          {% endif %}
+          
+          {% if section.settings.link2_text != blank and section.settings.link2_url != blank %}
+          <a href="{{ section.settings.link2_url }}" class="chad-footer__link">{{ section.settings.link2_text }}</a>
+          {% endif %}
+          
+          {% if section.settings.link3_text != blank and section.settings.link3_url != blank %}
+          <a href="{{ section.settings.link3_url }}" class="chad-footer__link">{{ section.settings.link3_text }}</a>
+          {% endif %}
+          
+          {% if section.settings.link4_text != blank and section.settings.link4_url != blank %}
+          <a href="{{ section.settings.link4_url }}" class="chad-footer__link">{{ section.settings.link4_text }}</a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Legal -->
+      <div class="chad-footer__section">
+        <h3 class="chad-footer__heading">Legal</h3>
+        <div class="chad-footer__links">
+          {% if section.settings.terms_url != blank %}
+          <a href="{{ section.settings.terms_url }}" class="chad-footer__link">Terms of Service</a>
+          {% endif %}
+          
+          {% if section.settings.privacy_url != blank %}
+          <a href="{{ section.settings.privacy_url }}" class="chad-footer__link">Privacy Policy</a>
+          {% endif %}
+          
+          {% if section.settings.refund_url != blank %}
+          <a href="{{ section.settings.refund_url }}" class="chad-footer__link">Refund Policy</a>
+          {% endif %}
+          
+          {% if section.settings.gdpr_url != blank %}
+          <a href="{{ section.settings.gdpr_url }}" class="chad-footer__link">GDPR Compliance</a>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+
+    <div class="chad-footer__divider"></div>
+
+    <!-- Trust Badges -->
+    {% if section.settings.show_trust_badges %}
+    <div class="chad-footer__trust">
+      <div class="chad-footer__trust-title">Trusted & Secure</div>
+      <div class="chad-footer__badges">
+        <div class="chad-footer__badge">
+          <span class="chad-footer__badge-icon">🔒</span>
+          SSL Encrypted
+        </div>
+        <div class="chad-footer__badge">
+          <span class="chad-footer__badge-icon">✅</span>
+          GDPR Compliant
+        </div>
+        <div class="chad-footer__badge">
+          <span class="chad-footer__badge-icon">💳</span>
+          Secure Payments
+        </div>
+        <div class="chad-footer__badge">
+          <span class="chad-footer__badge-icon">🛡️</span>
+          Data Protected
+        </div>
+        <div class="chad-footer__badge">
+          <span class="chad-footer__badge-icon">⭐</span>
+          500+ Reviews
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Bottom -->
+    <div class="chad-footer__bottom">
+      <div class="chad-footer__copyright">
+        © {{ 'now' | date: '%Y' }} {{ shop.name }}. All rights reserved.
+      </div>
+      <div class="chad-footer__legal">
+        {% if section.settings.terms_url != blank %}
+        <a href="{{ section.settings.terms_url }}" class="chad-footer__legal-link">Terms</a>
+        {% endif %}
+        {% if section.settings.privacy_url != blank %}
+        <a href="{{ section.settings.privacy_url }}" class="chad-footer__legal-link">Privacy</a>
+        {% endif %}
+        {% if section.settings.refund_url != blank %}
+        <a href="{{ section.settings.refund_url }}" class="chad-footer__legal-link">Refunds</a>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</footer>
+
+{% schema %}
+{
+  "name": "Chad Footer",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Brand"
+    },
+    {
+      "type": "image_picker",
+      "id": "logo",
+      "label": "Logo Image"
+    },
+    {
+      "type": "range",
+      "id": "logo_width",
+      "label": "Logo Width",
+      "min": 100,
+      "max": 400,
+      "step": 10,
+      "default": 250,
+      "unit": "px"
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Description",
+      "default": "Elite TBC arena coaching from top-rated players. Master your class and dominate the arena with personalized guidance from experienced gladiators."
+    },
+    {
+      "type": "header",
+      "content": "Social Media"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_social",
+      "label": "Show Social Links",
+      "default": true
+    },
+    {
+      "type": "url",
+      "id": "discord_url",
+      "label": "Discord URL"
+    },
+    {
+      "type": "url",
+      "id": "twitter_url",
+      "label": "Twitter/X URL"
+    },
+    {
+      "type": "url",
+      "id": "youtube_url",
+      "label": "YouTube URL"
+    },
+    {
+      "type": "url",
+      "id": "twitch_url",
+      "label": "Twitch URL"
+    },
+    {
+      "type": "header",
+      "content": "Quick Links"
+    },
+    {
+      "type": "text",
+      "id": "link1_text",
+      "label": "Link 1 Text",
+      "default": "Our Coaches"
+    },
+    {
+      "type": "url",
+      "id": "link1_url",
+      "label": "Link 1 URL"
+    },
+    {
+      "type": "text",
+      "id": "link2_text",
+      "label": "Link 2 Text",
+      "default": "Pricing"
+    },
+    {
+      "type": "url",
+      "id": "link2_url",
+      "label": "Link 2 URL"
+    },
+    {
+      "type": "text",
+      "id": "link3_text",
+      "label": "Link 3 Text",
+      "default": "Testimonials"
+    },
+    {
+      "type": "url",
+      "id": "link3_url",
+      "label": "Link 3 URL"
+    },
+    {
+      "type": "text",
+      "id": "link4_text",
+      "label": "Link 4 Text",
+      "default": "FAQ"
+    },
+    {
+      "type": "url",
+      "id": "link4_url",
+      "label": "Link 4 URL"
+    },
+    {
+      "type": "header",
+      "content": "Legal Pages"
+    },
+    {
+      "type": "url",
+      "id": "terms_url",
+      "label": "Terms of Service URL",
+      "info": "Link to your Terms of Service page"
+    },
+    {
+      "type": "url",
+      "id": "privacy_url",
+      "label": "Privacy Policy URL",
+      "info": "Link to your Privacy Policy page"
+    },
+    {
+      "type": "url",
+      "id": "refund_url",
+      "label": "Refund Policy URL",
+      "info": "Link to your Refund Policy page"
+    },
+    {
+      "type": "url",
+      "id": "gdpr_url",
+      "label": "GDPR Compliance URL",
+      "info": "Link to your GDPR compliance page"
+    },
+    {
+      "type": "header",
+      "content": "Trust Badges"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_trust_badges",
+      "label": "Show Trust Badges",
+      "default": true,
+      "info": "Display security and trust badges"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Chad Footer"
+    }
+  ]
+}
+{% endschema %}

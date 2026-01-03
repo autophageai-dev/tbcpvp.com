@@ -1,0 +1,322 @@
+<div class="stream-admin-wrapper">
+  <h2>Manage Approved Streamers</h2>
+  
+  <div class="add-streamer-form">
+    <input type="text" id="new-streamer-username" placeholder="Twitch username">
+    <input type="text" id="new-streamer-display" placeholder="Display name">
+    <select id="new-streamer-class">
+      <option value="">Select Class</option>
+      <option value="warrior">Warrior</option>
+      <option value="paladin">Paladin</option>
+      <option value="hunter">Hunter</option>
+      <option value="rogue">Rogue</option>
+      <option value="priest">Priest</option>
+      <option value="shaman">Shaman</option>
+      <option value="mage">Mage</option>
+      <option value="warlock">Warlock</option>
+      <option value="druid">Druid</option>
+    </select>
+    <button id="add-streamer-btn">Add Streamer</button>
+  </div>
+  
+  <div id="streamer-list" class="streamer-list">Loading...</div>
+  <div id="admin-status" class="admin-status"></div>
+</div>
+
+<style>
+  .stream-admin-wrapper {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    background: rgba(0,0,0,0.8);
+    border: 1px solid rgba(0,255,136,0.3);
+    border-radius: 12px;
+  }
+  .stream-admin-wrapper h2 {
+    color: #00ff88;
+    margin: 0 0 20px;
+  }
+  .add-streamer-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .add-streamer-form input, .add-streamer-form select {
+    flex: 1;
+    min-width: 120px;
+    padding: 10px;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    color: #fff;
+  }
+  .add-streamer-form select option {
+    background: #111;
+  }
+  .add-streamer-form input:focus, .add-streamer-form select:focus {
+    outline: none;
+    border-color: #00ff88;
+  }
+  .add-streamer-form button {
+    padding: 10px 20px;
+    background: #00ff88;
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .streamer-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    margin-bottom: 8px;
+    transition: all 0.2s ease;
+  }
+  .streamer-item.pinned {
+    background: rgba(0,255,136,0.1);
+    border-color: rgba(0,255,136,0.3);
+  }
+  .streamer-info { 
+    color: #fff; 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+  }
+  .streamer-info .username {
+    color: rgba(255,255,255,0.5);
+    font-size: 12px;
+  }
+  .streamer-class-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+  }
+  .pinned-badge {
+    background: #00ff88;
+    color: #000;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 8px;
+  }
+  .streamer-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .streamer-actions select {
+    padding: 6px;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 4px;
+    color: #fff;
+    font-size: 12px;
+  }
+  .pin-btn {
+    background: rgba(0,255,136,0.2);
+    border: 1px solid rgba(0,255,136,0.3);
+    color: #00ff88;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .pin-btn:hover {
+    background: rgba(0,255,136,0.3);
+  }
+  .pin-btn.active {
+    background: #00ff88;
+    color: #000;
+  }
+  .remove-btn {
+    background: rgba(255,100,100,0.2);
+    border: 1px solid rgba(255,100,100,0.3);
+    color: #ff6464;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .admin-status {
+    margin-top: 16px;
+    padding: 10px;
+    border-radius: 6px;
+    display: none;
+  }
+  .admin-status.success {
+    display: block;
+    background: rgba(0,255,136,0.2);
+    color: #00ff88;
+  }
+  .admin-status.error {
+    display: block;
+    background: rgba(255,100,100,0.2);
+    color: #ff6464;
+  }
+</style>
+
+<script>
+(function() {
+  const API = 'https://tbcpvp-api.kargozgaming.workers.dev';
+  const KEY = '{{ section.settings.admin_key }}';
+  const ICONS = {
+    warrior: 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/war.png?v=1766427831',
+    paladin: 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/pala.png?v=1766427831',
+    hunter: 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/hunter.png?v=1766427832',
+    rogue: 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/rogue.png?v=1766427831',
+    priest: 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/priest.png?v=1766427831',
+    shaman: 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/shaman.png?v=1766427831',
+    mage: 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/mage.png?v=1766427831',
+    warlock: 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/warlock.png?v=1766427831',
+    druid: 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/druid.png?v=1766427831'
+  };
+  
+  const list = document.getElementById('streamer-list');
+  const status = document.getElementById('admin-status');
+  
+  function showStatus(msg, err) {
+    status.textContent = msg;
+    status.className = 'admin-status ' + (err ? 'error' : 'success');
+    setTimeout(() => status.className = 'admin-status', 3000);
+  }
+  
+  async function load() {
+    const res = await fetch(API + '/streams/approved');
+    const data = await res.json();
+    if (!data.streamers?.length) {
+      list.innerHTML = '<p style="color:rgba(255,255,255,0.5)">No streamers yet</p>';
+      return;
+    }
+    list.innerHTML = data.streamers.map(s => `
+      <div class="streamer-item ${s.is_pinned ? 'pinned' : ''}">
+        <div class="streamer-info">
+          ${s.main_class ? `<img src="${ICONS[s.main_class]}" class="streamer-class-icon" alt="${s.main_class}">` : ''}
+          <div>
+            <div>
+              ${s.display_name}
+              ${s.is_pinned ? '<span class="pinned-badge">📌 FEATURED</span>' : ''}
+            </div>
+            <div class="username">twitch.tv/${s.twitch_username}</div>
+          </div>
+        </div>
+        <div class="streamer-actions">
+          <button class="pin-btn ${s.is_pinned ? 'active' : ''}" data-id="${s.id}" data-pinned="${s.is_pinned ? '1' : '0'}">
+            📌 ${s.is_pinned ? 'Pinned' : 'Pin'}
+          </button>
+          <select data-id="${s.id}" class="class-select">
+            <option value="">No Class</option>
+            <option value="warrior" ${s.main_class === 'warrior' ? 'selected' : ''}>Warrior</option>
+            <option value="paladin" ${s.main_class === 'paladin' ? 'selected' : ''}>Paladin</option>
+            <option value="hunter" ${s.main_class === 'hunter' ? 'selected' : ''}>Hunter</option>
+            <option value="rogue" ${s.main_class === 'rogue' ? 'selected' : ''}>Rogue</option>
+            <option value="priest" ${s.main_class === 'priest' ? 'selected' : ''}>Priest</option>
+            <option value="shaman" ${s.main_class === 'shaman' ? 'selected' : ''}>Shaman</option>
+            <option value="mage" ${s.main_class === 'mage' ? 'selected' : ''}>Mage</option>
+            <option value="warlock" ${s.main_class === 'warlock' ? 'selected' : ''}>Warlock</option>
+            <option value="druid" ${s.main_class === 'druid' ? 'selected' : ''}>Druid</option>
+          </select>
+          <button class="remove-btn" data-id="${s.id}">Remove</button>
+        </div>
+      </div>
+    `).join('');
+    
+    list.querySelectorAll('.remove-btn').forEach(b => {
+      b.onclick = () => remove(b.dataset.id);
+    });
+    
+    list.querySelectorAll('.class-select').forEach(sel => {
+      sel.onchange = () => updateClass(sel.dataset.id, sel.value);
+    });
+    
+    list.querySelectorAll('.pin-btn').forEach(btn => {
+      btn.onclick = () => togglePin(btn.dataset.id, btn.dataset.pinned === '1');
+    });
+  }
+  
+  async function add() {
+    const u = document.getElementById('new-streamer-username').value.trim().toLowerCase();
+    const d = document.getElementById('new-streamer-display').value.trim() || u;
+    const c = document.getElementById('new-streamer-class').value;
+    if (!u) return showStatus('Enter username', true);
+    
+    const res = await fetch(API + '/streams/approved?admin_key=' + KEY, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({twitch_username: u, display_name: d, main_class: c || null})
+    });
+    if (res.ok) {
+      showStatus('Added!', false);
+      document.getElementById('new-streamer-username').value = '';
+      document.getElementById('new-streamer-display').value = '';
+      document.getElementById('new-streamer-class').value = '';
+      load();
+    } else {
+      showStatus('Failed to add', true);
+    }
+  }
+  
+  async function updateClass(id, mainClass) {
+    const res = await fetch(API + '/streams/approved/' + id + '?admin_key=' + KEY, {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({main_class: mainClass || null})
+    });
+    if (res.ok) {
+      showStatus('Class updated!', false);
+      load();
+    } else {
+      showStatus('Failed to update', true);
+    }
+  }
+  
+  async function togglePin(id, currentlyPinned) {
+    const res = await fetch(API + '/streams/approved/' + id + '?admin_key=' + KEY, {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({is_pinned: !currentlyPinned})
+    });
+    if (res.ok) {
+      showStatus(currentlyPinned ? 'Unpinned!' : 'Pinned as featured!', false);
+      load();
+    } else {
+      showStatus('Failed to update', true);
+    }
+  }
+  
+  async function remove(id) {
+    if (!confirm('Remove?')) return;
+    const res = await fetch(API + '/streams/approved/' + id + '?admin_key=' + KEY, {method: 'DELETE'});
+    if (res.ok) { showStatus('Removed!', false); load(); }
+    else showStatus('Failed', true);
+  }
+  
+  document.getElementById('add-streamer-btn').onclick = add;
+  load();
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Stream Admin",
+  "settings": [
+    {
+      "type": "text",
+      "id": "admin_key",
+      "label": "Admin Key",
+      "info": "Your secret admin key from Cloudflare"
+    }
+  ],
+  "presets": [{ "name": "Stream Admin" }]
+}
+{% endschema %}

@@ -1,0 +1,983 @@
+{% comment %}
+  TBC PVP Live Stream Embed
+  Features: Class filters, chat toggle, featured rotation, offline section, pinned streamer
+{% endcomment %}
+
+<div class="live-stream-container">
+  <!-- Header with class filters -->
+  <div class="stream-header-section">
+    <h2 class="stream-section-title">Watch Glad+ Arena Live</h2>
+    <p class="stream-section-subtitle">Sort Streams By Class</p>
+    
+    <div class="class-filter-bar">
+      <button class="class-filter-btn active" data-class="all">
+        <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/r1.png?v=1766454505" alt="All">
+        <span class="filter-label">ALL</span>
+      </button>
+      <button class="class-filter-btn" data-class="warrior">
+        <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/war.png?v=1766427831" alt="Warrior">
+        <span class="filter-label">WARRIOR</span>
+      </button>
+      <button class="class-filter-btn" data-class="paladin">
+        <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/pala.png?v=1766427831" alt="Paladin">
+        <span class="filter-label">PALADIN</span>
+      </button>
+      <button class="class-filter-btn" data-class="hunter">
+        <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/hunter.png?v=1766427832" alt="Hunter">
+        <span class="filter-label">HUNTER</span>
+      </button>
+      <button class="class-filter-btn" data-class="rogue">
+        <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/rogue.png?v=1766427831" alt="Rogue">
+        <span class="filter-label">ROGUE</span>
+      </button>
+      <button class="class-filter-btn" data-class="priest">
+        <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/priest.png?v=1766427831" alt="Priest">
+        <span class="filter-label">PRIEST</span>
+      </button>
+      <button class="class-filter-btn" data-class="shaman">
+        <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/shaman.png?v=1766427831" alt="Shaman">
+        <span class="filter-label">SHAMAN</span>
+      </button>
+      <button class="class-filter-btn" data-class="mage">
+        <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/mage.png?v=1766427831" alt="Mage">
+        <span class="filter-label">MAGE</span>
+      </button>
+      <button class="class-filter-btn" data-class="warlock">
+        <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/warlock.png?v=1766427831" alt="Warlock">
+        <span class="filter-label">WARLOCK</span>
+      </button>
+      <button class="class-filter-btn" data-class="druid">
+        <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/druid.png?v=1766427831" alt="Druid">
+        <span class="filter-label">DRUID</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Live stream section -->
+  <div id="live-stream-section" class="live-stream-wrapper" style="display: none;">
+    <div class="live-stream-header">
+      <div class="live-indicator">
+        <span class="live-dot"></span>
+        <span class="live-text">LIVE</span>
+      </div>
+      <div class="stream-info-header">
+        <img id="streamer-class-icon" class="streamer-class-icon" src="" alt="" style="display: none;">
+        <span class="streamer-name" id="streamer-name"></span>
+        <span id="pinned-badge" class="pinned-badge" style="display: none;">📌 FEATURED</span>
+        <span class="viewer-count" id="viewer-count"></span>
+      </div>
+      <div class="stream-controls">
+        <button id="chat-toggle-btn" class="control-btn">
+          <span class="chat-icon">💬</span>
+          <span class="chat-label">Chat</span>
+        </button>
+      </div>
+    </div>
+    
+    <div class="stream-player-area">
+      <div class="stream-embed" id="stream-embed"></div>
+      <div class="stream-chat" id="stream-chat" style="display: none;"></div>
+    </div>
+    
+    <!-- Other live streams -->
+    <div class="other-streams-section" id="other-streams-section" style="display: none;">
+      <h3 class="other-streams-title">Other Live Streams</h3>
+      <div class="other-streams-grid" id="other-streams-grid"></div>
+    </div>
+  </div>
+
+  <!-- No streams live -->
+  <div id="no-stream-section" class="no-stream-wrapper" style="display: none;">
+    <div class="no-stream-content">
+      <div class="offline-icon">📺</div>
+      <h3>No Streams Live Right Now</h3>
+      <p>Check back soon or browse our guides while you wait!</p>
+    </div>
+  </div>
+
+  <!-- Offline streamers section - Collapsible -->
+  <div id="offline-section" class="offline-section" style="display: none;">
+    <button class="offline-toggle" id="offline-toggle">
+      <span class="offline-toggle-text">
+        <span class="offline-title">Offline Streamers</span>
+        <span class="offline-count" id="offline-count"></span>
+      </span>
+      <span class="offline-toggle-icon" id="offline-toggle-icon">▼</span>
+    </button>
+    <div class="offline-content" id="offline-content" style="display: none;">
+      <div class="offline-grid" id="offline-grid"></div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .live-stream-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .stream-header-section {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .stream-section-title {
+    color: #00ff88;
+    font-size: 2rem;
+    margin: 0 0 4px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .stream-section-subtitle {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.9rem;
+    margin: 0 0 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .class-filter-bar {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .class-filter-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 16px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 80px;
+  }
+
+  .class-filter-btn img {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    transition: transform 0.2s ease;
+    opacity: 0.6;
+    object-fit: contain;
+  }
+
+  .class-filter-btn .filter-label {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .class-filter-btn[data-class="all"]:hover { border-color: rgba(0, 255, 136, 0.7); background: rgba(0, 255, 136, 0.15); }
+  .class-filter-btn[data-class="all"]:hover .filter-label { color: #00ff88; }
+  
+  .class-filter-btn[data-class="warrior"]:hover { border-color: rgba(199, 156, 110, 0.7); background: rgba(199, 156, 110, 0.15); }
+  .class-filter-btn[data-class="warrior"]:hover .filter-label { color: #C79C6E; }
+  
+  .class-filter-btn[data-class="paladin"]:hover { border-color: rgba(245, 140, 186, 0.7); background: rgba(245, 140, 186, 0.15); }
+  .class-filter-btn[data-class="paladin"]:hover .filter-label { color: #F58CBA; }
+  
+  .class-filter-btn[data-class="hunter"]:hover { border-color: rgba(171, 212, 115, 0.7); background: rgba(171, 212, 115, 0.15); }
+  .class-filter-btn[data-class="hunter"]:hover .filter-label { color: #ABD473; }
+  
+  .class-filter-btn[data-class="rogue"]:hover { border-color: rgba(255, 245, 105, 0.7); background: rgba(255, 245, 105, 0.15); }
+  .class-filter-btn[data-class="rogue"]:hover .filter-label { color: #FFF569; }
+  
+  .class-filter-btn[data-class="priest"]:hover { border-color: rgba(255, 255, 255, 0.7); background: rgba(255, 255, 255, 0.15); }
+  .class-filter-btn[data-class="priest"]:hover .filter-label { color: #FFFFFF; }
+  
+  .class-filter-btn[data-class="shaman"]:hover { border-color: rgba(0, 112, 222, 0.7); background: rgba(0, 112, 222, 0.15); }
+  .class-filter-btn[data-class="shaman"]:hover .filter-label { color: #0070DE; }
+  
+  .class-filter-btn[data-class="mage"]:hover { border-color: rgba(105, 204, 240, 0.7); background: rgba(105, 204, 240, 0.15); }
+  .class-filter-btn[data-class="mage"]:hover .filter-label { color: #69CCF0; }
+  
+  .class-filter-btn[data-class="warlock"]:hover { border-color: rgba(148, 130, 201, 0.7); background: rgba(148, 130, 201, 0.15); }
+  .class-filter-btn[data-class="warlock"]:hover .filter-label { color: #9482C9; }
+  
+  .class-filter-btn[data-class="druid"]:hover { border-color: rgba(255, 125, 10, 0.7); background: rgba(255, 125, 10, 0.15); }
+  .class-filter-btn[data-class="druid"]:hover .filter-label { color: #FF7D0A; }
+
+  .class-filter-btn:hover img {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+
+  .class-filter-btn.active {
+    border-color: #00ff88;
+    background: rgba(0, 255, 136, 0.15);
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+  }
+
+  .class-filter-btn.active img {
+    opacity: 1;
+  }
+
+  .class-filter-btn.active .filter-label {
+    color: #00ff88;
+  }
+
+  .class-filter-btn.disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .class-filter-btn.disabled:hover {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.5);
+  }
+
+  .class-filter-btn.disabled:hover img {
+    transform: none;
+    opacity: 0.6;
+  }
+
+  .class-filter-btn.disabled:hover .filter-label {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .live-stream-wrapper {
+    background: linear-gradient(135deg, rgba(0, 255, 136, 0.05) 0%, rgba(0, 0, 0, 0.9) 100%);
+    border: 1px solid rgba(0, 255, 136, 0.3);
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .live-stream-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .live-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 0, 0, 0.2);
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 0, 0, 0.5);
+  }
+
+  .live-dot {
+    width: 8px;
+    height: 8px;
+    background: #ff0000;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.2); }
+  }
+
+  .live-text {
+    color: #ff0000;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+
+  .stream-info-header {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .streamer-class-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+  }
+
+  .streamer-name {
+    color: #fff;
+    font-weight: 600;
+    font-size: 1.2rem;
+  }
+
+  .pinned-badge {
+    background: #00ff88;
+    color: #000;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+
+  .viewer-count {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 14px;
+  }
+
+  .viewer-count::before {
+    content: '👁 ';
+  }
+
+  .stream-controls {
+    display: flex;
+    gap: 8px;
+  }
+
+  .control-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 13px;
+  }
+
+  .control-btn:hover {
+    background: rgba(0, 255, 136, 0.2);
+    border-color: #00ff88;
+  }
+
+  .control-btn.active {
+    background: rgba(0, 255, 136, 0.3);
+    border-color: #00ff88;
+    color: #00ff88;
+  }
+
+  .stream-player-area {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .stream-player-area.with-chat {
+    grid-template-columns: 1fr 340px;
+  }
+
+  @media (max-width: 1000px) {
+    .stream-player-area.with-chat {
+      grid-template-columns: 1fr;
+    }
+    .stream-chat {
+      height: 400px;
+    }
+  }
+
+  .stream-embed {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+    border-radius: 8px;
+    background: #000;
+  }
+
+  .stream-embed iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+
+  .stream-chat {
+    border-radius: 8px;
+    overflow: hidden;
+    background: #18181b;
+  }
+
+  .stream-chat iframe {
+    width: 100%;
+    height: 100%;
+    min-height: 500px;
+    border: none;
+  }
+
+  .other-streams-section {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(0, 255, 136, 0.2);
+  }
+
+  .other-streams-title {
+    color: #00ff88;
+    font-size: 1.1rem;
+    margin: 0 0 16px;
+  }
+
+  .other-streams-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+
+  @media (max-width: 900px) {
+    .other-streams-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 500px) {
+    .other-streams-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .other-stream-card {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .other-stream-card:hover {
+    border-color: #00ff88;
+    transform: translateY(-2px);
+  }
+
+  .other-stream-thumb {
+    position: relative;
+    padding-bottom: 56.25%;
+    background: #000;
+  }
+
+  .other-stream-thumb img.thumb-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .other-stream-live-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: #ff0000;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  .other-stream-class-icon {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 2px;
+  }
+
+  .other-stream-viewers {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  .other-stream-info {
+    padding: 10px;
+  }
+
+  .other-stream-name {
+    color: #fff;
+    font-weight: 600;
+    font-size: 14px;
+    margin: 0 0 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .other-stream-title {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 12px;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .no-stream-wrapper {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 40px 20px;
+    text-align: center;
+  }
+
+  .offline-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+
+  .no-stream-content h3 {
+    color: #fff;
+    margin: 0 0 8px;
+  }
+
+  .no-stream-content p {
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0;
+  }
+
+  .offline-section {
+    margin-top: 24px;
+  }
+
+  .offline-toggle {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .offline-toggle:hover {
+    background: rgba(0, 0, 0, 0.6);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .offline-toggle-text {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .offline-title {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .offline-count {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.8rem;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+
+  .offline-toggle-icon {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 12px;
+    transition: transform 0.2s ease;
+  }
+
+  .offline-toggle.expanded .offline-toggle-icon {
+    transform: rotate(180deg);
+  }
+
+  .offline-content {
+    margin-top: 12px;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+  }
+
+  .offline-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+  }
+
+  .offline-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 8px;
+    background: #000;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .offline-card:hover {
+    border-color: rgba(145, 70, 255, 0.5);
+    background: rgba(145, 70, 255, 0.05);
+  }
+
+  .offline-card-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    opacity: 0.5;
+  }
+
+  .offline-card-icon-placeholder {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .offline-card-name {
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 500;
+    font-size: 12px;
+    text-align: center;
+  }
+
+  @media (max-width: 768px) {
+    .class-filter-bar {
+      gap: 6px;
+      padding: 12px;
+    }
+    .class-filter-btn {
+      padding: 8px 10px;
+      min-width: 60px;
+    }
+    .class-filter-btn img {
+      width: 24px;
+      height: 24px;
+    }
+    .class-filter-btn .filter-label {
+      font-size: 8px;
+    }
+    .stream-section-title {
+      font-size: 1.4rem;
+    }
+  }
+</style>
+
+<script>
+(function() {
+  const API_URL = 'https://tbcpvp-api.kargozgaming.workers.dev';
+  const CLASS_ICONS = {
+    warrior: 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/war.png?v=1766427831',
+    paladin: 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/pala.png?v=1766427831',
+    hunter: 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/hunter.png?v=1766427832',
+    rogue: 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/rogue.png?v=1766427831',
+    priest: 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/priest.png?v=1766427831',
+    shaman: 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/shaman.png?v=1766427831',
+    mage: 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/mage.png?v=1766427831',
+    warlock: 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/warlock.png?v=1766427831',
+    druid: 'https://cdn.shopify.com/s/files/1/0964/2609/8968/files/druid.png?v=1766427831'
+  };
+  
+  let allLiveStreams = [];
+  let allOfflineStreamers = [];
+  let pinnedStreamer = null;
+  let currentStream = null;
+  let currentFilter = 'all';
+  let chatVisible = false;
+  let featuredIndex = 0;
+  let offlineExpanded = false;
+  
+  async function fetchStreams() {
+    try {
+      const res = await fetch(`${API_URL}/streams/live`);
+      const data = await res.json();
+      allLiveStreams = data.live || [];
+      allOfflineStreamers = data.offline || [];
+      pinnedStreamer = data.pinned || null;
+      return true;
+    } catch (err) {
+      console.error('Failed to fetch streams:', err);
+      return false;
+    }
+  }
+  
+  function getFilteredStreams() {
+    if (currentFilter === 'all') return allLiveStreams;
+    return allLiveStreams.filter(s => s.mainClass === currentFilter);
+  }
+  
+  function getFilteredOffline() {
+    if (currentFilter === 'all') return allOfflineStreamers;
+    return allOfflineStreamers.filter(s => s.mainClass === currentFilter);
+  }
+  
+  function updateFilterButtons() {
+    const liveClasses = new Set(allLiveStreams.map(s => s.mainClass).filter(Boolean));
+    const offlineClasses = new Set(allOfflineStreamers.map(s => s.mainClass).filter(Boolean));
+    const allClasses = new Set([...liveClasses, ...offlineClasses]);
+    
+    document.querySelectorAll('.class-filter-btn').forEach(btn => {
+      const cls = btn.dataset.class;
+      if (cls === 'all') return;
+      
+      if (allClasses.has(cls) || liveClasses.has(cls)) {
+        btn.classList.remove('disabled');
+      } else {
+        btn.classList.add('disabled');
+      }
+    });
+  }
+  
+  function embedStream(stream) {
+    currentStream = stream;
+    const embedContainer = document.getElementById('stream-embed');
+    const chatContainer = document.getElementById('stream-chat');
+    const streamerName = document.getElementById('streamer-name');
+    const viewerCount = document.getElementById('viewer-count');
+    const classIcon = document.getElementById('streamer-class-icon');
+    const pinnedBadge = document.getElementById('pinned-badge');
+    
+    streamerName.textContent = stream.displayName;
+    viewerCount.textContent = `${stream.viewers.toLocaleString()} viewers`;
+    
+    if (stream.mainClass && CLASS_ICONS[stream.mainClass]) {
+      classIcon.src = CLASS_ICONS[stream.mainClass];
+      classIcon.alt = stream.mainClass;
+      classIcon.style.display = 'block';
+    } else {
+      classIcon.style.display = 'none';
+    }
+    
+    // Show pinned badge if this is the pinned streamer
+    if (pinnedStreamer && stream.username.toLowerCase() === pinnedStreamer.username.toLowerCase()) {
+      pinnedBadge.style.display = 'inline-block';
+    } else {
+      pinnedBadge.style.display = 'none';
+    }
+    
+    embedContainer.innerHTML = `
+      <iframe
+        src="https://player.twitch.tv/?channel=${stream.username}&parent=www.tbcpvp.com&muted=true"
+        allowfullscreen>
+      </iframe>
+    `;
+    
+    if (chatVisible) {
+      chatContainer.innerHTML = `
+        <iframe
+          src="https://www.twitch.tv/embed/${stream.username}/chat?parent=www.tbcpvp.com&darkpopout">
+        </iframe>
+      `;
+    }
+  }
+  
+  function toggleChat() {
+    const chatContainer = document.getElementById('stream-chat');
+    const playerArea = document.querySelector('.stream-player-area');
+    const chatBtn = document.getElementById('chat-toggle-btn');
+    
+    chatVisible = !chatVisible;
+    
+    if (chatVisible) {
+      playerArea.classList.add('with-chat');
+      chatContainer.style.display = 'block';
+      chatBtn.classList.add('active');
+      if (currentStream) {
+        chatContainer.innerHTML = `
+          <iframe
+            src="https://www.twitch.tv/embed/${currentStream.username}/chat?parent=www.tbcpvp.com&darkpopout">
+          </iframe>
+        `;
+      }
+    } else {
+      playerArea.classList.remove('with-chat');
+      chatContainer.style.display = 'none';
+      chatContainer.innerHTML = '';
+      chatBtn.classList.remove('active');
+    }
+  }
+  
+  function toggleOffline() {
+    const content = document.getElementById('offline-content');
+    const toggle = document.getElementById('offline-toggle');
+    
+    offlineExpanded = !offlineExpanded;
+    
+    if (offlineExpanded) {
+      content.style.display = 'block';
+      toggle.classList.add('expanded');
+    } else {
+      content.style.display = 'none';
+      toggle.classList.remove('expanded');
+    }
+  }
+  
+  function renderOtherStreams() {
+    const section = document.getElementById('other-streams-section');
+    const grid = document.getElementById('other-streams-grid');
+    const filtered = getFilteredStreams();
+    const others = filtered.filter(s => s.username !== currentStream?.username);
+    
+    if (others.length === 0) {
+      section.style.display = 'none';
+      return;
+    }
+    
+    section.style.display = 'block';
+    
+    grid.innerHTML = others.slice(0, 4).map(s => `
+      <div class="other-stream-card" data-username="${s.username}">
+        <div class="other-stream-thumb">
+          <img class="thumb-img" src="${s.thumbnail}" alt="${s.displayName}">
+          <span class="other-stream-live-badge">LIVE</span>
+          ${s.mainClass ? `<img src="${CLASS_ICONS[s.mainClass]}" class="other-stream-class-icon" alt="${s.mainClass}">` : ''}
+          <span class="other-stream-viewers">👁 ${s.viewers.toLocaleString()}</span>
+        </div>
+        <div class="other-stream-info">
+          <p class="other-stream-name">${s.displayName}</p>
+          <p class="other-stream-title">${s.title}</p>
+        </div>
+      </div>
+    `).join('');
+    
+    grid.querySelectorAll('.other-stream-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const stream = allLiveStreams.find(s => s.username === card.dataset.username);
+        if (stream) {
+          embedStream(stream);
+          renderOtherStreams();
+          window.scrollTo({ top: document.querySelector('.live-stream-wrapper').offsetTop - 20, behavior: 'smooth' });
+        }
+      });
+    });
+  }
+  
+  function renderOfflineSection() {
+    const section = document.getElementById('offline-section');
+    const grid = document.getElementById('offline-grid');
+    const countEl = document.getElementById('offline-count');
+    const filtered = getFilteredOffline();
+    
+    if (filtered.length === 0) {
+      section.style.display = 'none';
+      return;
+    }
+    
+    section.style.display = 'block';
+    countEl.textContent = filtered.length + ' streamer' + (filtered.length !== 1 ? 's' : '');
+    
+    grid.innerHTML = filtered.map(s => `
+      <a href="https://twitch.tv/${s.username}" target="_blank" class="offline-card">
+        ${s.mainClass ? `<img src="${CLASS_ICONS[s.mainClass]}" class="offline-card-icon" alt="${s.mainClass}">` : '<div class="offline-card-icon-placeholder"></div>'}
+        <div class="offline-card-name">${s.displayName}</div>
+      </a>
+    `).join('');
+  }
+  
+  function render() {
+    const filtered = getFilteredStreams();
+    const liveSection = document.getElementById('live-stream-section');
+    const noStreamSection = document.getElementById('no-stream-section');
+    
+    updateFilterButtons();
+    
+    if (filtered.length > 0) {
+      liveSection.style.display = 'block';
+      noStreamSection.style.display = 'none';
+      
+      if (!currentStream || !filtered.find(s => s.username === currentStream.username)) {
+        // Check for pinned streamer first (must be live and in current filter)
+        if (pinnedStreamer && filtered.find(s => s.username.toLowerCase() === pinnedStreamer.username.toLowerCase())) {
+          embedStream(filtered.find(s => s.username.toLowerCase() === pinnedStreamer.username.toLowerCase()));
+        } else {
+          featuredIndex = featuredIndex % filtered.length;
+          embedStream(filtered[featuredIndex]);
+        }
+      }
+      
+      renderOtherStreams();
+    } else {
+      liveSection.style.display = 'none';
+      noStreamSection.style.display = 'block';
+    }
+    
+    renderOfflineSection();
+  }
+  
+  function setFilter(cls) {
+    currentFilter = cls;
+    currentStream = null;
+    
+    document.querySelectorAll('.class-filter-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.class === cls);
+    });
+    
+    render();
+  }
+  
+  async function init() {
+    await fetchStreams();
+    render();
+    
+    document.querySelectorAll('.class-filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (!btn.classList.contains('disabled')) {
+          setFilter(btn.dataset.class);
+        }
+      });
+    });
+    
+    document.getElementById('chat-toggle-btn').addEventListener('click', toggleChat);
+    document.getElementById('offline-toggle').addEventListener('click', toggleOffline);
+    
+    // Rotate featured streamer every 5 minutes (only if no pinned streamer)
+    setInterval(() => {
+      const filtered = getFilteredStreams();
+      const hasPinned = pinnedStreamer && filtered.find(s => s.username.toLowerCase() === pinnedStreamer.username.toLowerCase());
+      if (!hasPinned && filtered.length > 1) {
+        featuredIndex = (featuredIndex + 1) % filtered.length;
+        embedStream(filtered[featuredIndex]);
+        renderOtherStreams();
+      }
+    }, 300000);
+    
+    // Refresh stream data every 2 minutes
+    setInterval(async () => {
+      await fetchStreams();
+      render();
+    }, 120000);
+  }
+  
+  init();
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Live Stream Embed",
+  "tag": "section",
+  "class": "live-stream-section",
+  "settings": [],
+  "presets": [
+    {
+      "name": "Live Stream Embed"
+    }
+  ]
+}
+{% endschema %}

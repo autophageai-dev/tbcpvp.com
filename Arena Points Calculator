@@ -1,0 +1,1671 @@
+{% comment %}
+  TBC Arena Points Calculator - Premium Edition
+  Shopify Liquid Section
+  VERSION: 2.7.0 (December 30, 2025)
+  - UPDATED: 3v3 formula corrected (asymptote 2234, same as 5v5)
+  - UPDATED: 2v2 has separate formula (asymptote 1664)
+  - 3v3/5v5 give 34% more points than 2v2 at same rating
+{% endcomment %}
+
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  .arena-calc-epic {
+    min-height: 100vh;
+    background: linear-gradient(180deg, #050505 0%, #0a0a0a 50%, #000000 100%);
+    padding: 60px 20px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  .calc-container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .tbc-logo-section {
+    text-align: center;
+    margin: 0 auto 30px auto;
+    padding: 40px 20px;
+    border-radius: 20px;
+    background: rgba(0, 255, 65, 0.05);
+    border: 2px solid rgba(0, 255, 65, 0.2);
+  }
+
+  .tbc-logo {
+    width: 400px;
+    max-width: 90%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    filter: drop-shadow(0 0 15px rgba(0, 255, 65, 0.4));
+  }
+
+  .calc-title {
+    font-size: 38px;
+    font-weight: 800;
+    color: #00FF41;
+    text-align: center;
+    margin: 20px 0 8px 0;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .calc-subtitle {
+    text-align: center;
+    color: rgba(180, 180, 180, 0.9);
+    font-size: 14px;
+    margin-bottom: 30px;
+  }
+
+  /* HYPE BANNER */
+  .hype-banner {
+    margin-bottom: 30px;
+    padding: 30px;
+    background: rgba(0, 255, 65, 0.1);
+    border: 3px solid rgba(0, 255, 65, 0.5);
+    border-radius: 20px;
+    text-align: center;
+  }
+
+  .hype-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .hype-stat-value {
+    font-size: 42px;
+    font-weight: 900;
+    color: #00FF41;
+    text-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+    line-height: 1;
+  }
+
+  .hype-stat-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.9);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-top: 8px;
+    font-weight: 700;
+  }
+
+  .hype-tagline {
+    margin-top: 20px;
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.95);
+    font-weight: 600;
+  }
+
+  .hype-tagline span {
+    color: #00FF41;
+    font-weight: 800;
+  }
+
+  .updated-banner {
+    text-align: center;
+    margin-bottom: 25px;
+    padding: 16px 24px;
+    background: rgba(0, 255, 65, 0.08);
+    border: 2px solid rgba(0, 255, 65, 0.4);
+    border-radius: 12px;
+  }
+
+  .updated-badge {
+    display: inline-block;
+    background: #00FF41;
+    color: #000;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin-right: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .updated-text {
+    color: #00FF41;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .ptr-warning {
+    text-align: center;
+    color: rgba(255, 200, 0, 0.9);
+    font-size: 12px;
+    margin-bottom: 40px;
+    padding: 12px 20px;
+    background: rgba(255, 200, 0, 0.05);
+    border: 1px solid rgba(255, 200, 0, 0.2);
+    border-radius: 8px;
+  }
+
+  /* Tab Navigation */
+  .tab-nav {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    padding: 14px 24px;
+    background: rgba(20, 20, 20, 0.8);
+    border: 2px solid rgba(0, 255, 65, 0.15);
+    border-radius: 10px;
+    color: rgba(180, 180, 180, 0.9);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, color 0.2s;
+  }
+
+  .tab-btn:hover {
+    border-color: rgba(0, 255, 65, 0.3);
+    background: rgba(0, 255, 65, 0.05);
+  }
+
+  .tab-btn.active {
+    border-color: rgba(0, 255, 65, 0.6);
+    background: rgba(0, 255, 65, 0.1);
+    color: #00FF41;
+  }
+
+  .tab-btn.new-tab {
+    position: relative;
+  }
+
+  .tab-btn.new-tab::after {
+    content: 'NEW';
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #ff4444;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  .tab-btn.hot-tab::after {
+    content: '🔥';
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    font-size: 16px;
+  }
+
+  .tab-content {
+    display: none;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  .calc-card {
+    background: rgba(30, 30, 30, 0.9);
+    border: 2px solid rgba(0, 255, 65, 0.25);
+    border-radius: 16px;
+    padding: 50px;
+  }
+
+  .section-header {
+    font-size: 16px;
+    font-weight: 700;
+    color: #00FF41;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 25px;
+    text-align: center;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(0, 255, 65, 0.2);
+  }
+
+  .bracket-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 40px;
+  }
+
+  .bracket-btn {
+    padding: 28px 20px;
+    background: rgba(20, 20, 20, 0.9);
+    border: 3px solid rgba(80, 80, 80, 0.4);
+    border-radius: 14px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, transform 0.2s;
+  }
+
+  .bracket-btn:hover {
+    border-color: rgba(0, 255, 65, 0.4);
+    background: rgba(0, 255, 65, 0.05);
+    transform: translateY(-2px);
+  }
+
+  .bracket-btn.selected {
+    border-color: #00FF41;
+    background: rgba(0, 255, 65, 0.1);
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+  }
+
+  .bracket-label {
+    font-size: 28px;
+    font-weight: 900;
+    color: #00FF41;
+    text-align: center;
+    margin-bottom: 6px;
+  }
+
+  .bracket-desc {
+    font-size: 11px;
+    color: rgba(180, 180, 180, 0.8);
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .bracket-points-hint {
+    font-size: 10px;
+    color: rgba(0, 255, 65, 0.7);
+    text-align: center;
+    margin-top: 8px;
+    font-weight: 600;
+  }
+
+  .input-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 35px;
+  }
+
+  .input-group label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(180, 180, 180, 0.9);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 12px;
+  }
+
+  .input-group input {
+    width: 100%;
+    padding: 18px 20px;
+    background: rgba(15, 15, 15, 0.9);
+    border: 2px solid rgba(80, 80, 80, 0.4);
+    border-radius: 10px;
+    color: #fff;
+    font-size: 20px;
+    font-weight: 700;
+    transition: border-color 0.2s;
+  }
+
+  .input-group input:focus {
+    outline: none;
+    border-color: #00FF41;
+  }
+
+  .input-group input::placeholder {
+    color: rgba(100, 100, 100, 0.6);
+  }
+
+  .calc-btn {
+    width: 100%;
+    padding: 22px;
+    background: #00FF41;
+    border: none;
+    border-radius: 12px;
+    color: #000;
+    font-size: 16px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .calc-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 255, 65, 0.4);
+  }
+
+  .results-panel {
+    margin-top: 40px;
+    padding: 40px;
+    background: rgba(0, 255, 65, 0.05);
+    border: 2px solid rgba(0, 255, 65, 0.3);
+    border-radius: 16px;
+    display: none;
+  }
+
+  .results-panel.show {
+    display: block;
+  }
+
+  .results-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+  }
+
+  .result-box {
+    text-align: center;
+    padding: 30px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 12px;
+    border: 1px solid rgba(0, 255, 65, 0.2);
+  }
+
+  .result-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(180, 180, 180, 0.8);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 12px;
+  }
+
+  .result-value {
+    font-size: 48px;
+    font-weight: 900;
+    color: #00FF41;
+    text-shadow: 0 0 30px rgba(0, 255, 65, 0.5);
+  }
+
+  /* Weeks to Gear Tab */
+  .weeks-card {
+    background: rgba(30, 30, 30, 0.9);
+    border: 2px solid rgba(0, 255, 65, 0.25);
+    border-radius: 16px;
+    padding: 50px;
+  }
+
+  .speed-hero {
+    text-align: center;
+    padding: 40px;
+    margin-bottom: 40px;
+    background: rgba(0, 255, 65, 0.08);
+    border: 3px solid rgba(0, 255, 65, 0.4);
+    border-radius: 20px;
+  }
+
+  .speed-hero-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: rgba(180, 180, 180, 0.9);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+  }
+
+  .speed-hero-value {
+    font-size: 72px;
+    font-weight: 900;
+    color: #00FF41;
+    text-shadow: 0 0 40px rgba(0, 255, 65, 0.6);
+    line-height: 1;
+  }
+
+  .speed-hero-subtitle {
+    font-size: 18px;
+    font-weight: 700;
+    color: #00FF41;
+    margin-top: 10px;
+  }
+
+  .speed-hero-desc {
+    font-size: 14px;
+    color: rgba(180, 180, 180, 0.8);
+    margin-top: 15px;
+  }
+
+  .weeks-input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 20px;
+    align-items: end;
+    margin-bottom: 40px;
+  }
+
+  .weeks-input-group label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(180, 180, 180, 0.9);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 10px;
+  }
+
+  .weeks-input-group input,
+  .weeks-input-group select {
+    width: 100%;
+    padding: 16px 18px;
+    background: rgba(15, 15, 15, 0.9);
+    border: 2px solid rgba(80, 80, 80, 0.4);
+    border-radius: 10px;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .weeks-input-group select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2300FF41' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+  }
+
+  .weeks-input-group input:focus,
+  .weeks-input-group select:focus {
+    outline: none;
+    border-color: #00FF41;
+  }
+
+  .weeks-calc-btn {
+    padding: 16px 30px;
+    background: #00FF41;
+    border: none;
+    border-radius: 10px;
+    color: #000;
+    font-size: 14px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: transform 0.2s;
+  }
+
+  .weeks-calc-btn:hover {
+    transform: translateY(-2px);
+  }
+
+  .weeks-results {
+    display: none;
+  }
+
+  .weeks-results.show {
+    display: block;
+  }
+
+  .comparison-grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 30px;
+    align-items: center;
+    margin-bottom: 40px;
+  }
+
+  .comparison-box {
+    text-align: center;
+    padding: 35px 25px;
+    border-radius: 16px;
+  }
+
+  .comparison-box.old {
+    background: rgba(255, 68, 68, 0.08);
+    border: 2px solid rgba(255, 68, 68, 0.3);
+  }
+
+  .comparison-box.new {
+    background: rgba(0, 255, 65, 0.08);
+    border: 2px solid rgba(0, 255, 65, 0.3);
+  }
+
+  .comparison-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 15px;
+  }
+
+  .comparison-box.old .comparison-label {
+    color: rgba(255, 120, 120, 0.9);
+  }
+
+  .comparison-box.new .comparison-label {
+    color: #00FF41;
+  }
+
+  .comparison-weeks {
+    font-size: 52px;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .comparison-box.old .comparison-weeks {
+    color: rgba(255, 100, 100, 0.9);
+  }
+
+  .comparison-box.new .comparison-weeks {
+    color: #00FF41;
+    text-shadow: 0 0 30px rgba(0, 255, 65, 0.5);
+  }
+
+  .comparison-subtext {
+    font-size: 12px;
+    color: rgba(180, 180, 180, 0.7);
+  }
+
+  .comparison-arrow {
+    font-size: 40px;
+    color: #00FF41;
+  }
+
+  .time-saved-box {
+    text-align: center;
+    padding: 35px;
+    background: rgba(0, 255, 65, 0.1);
+    border: 3px solid #00FF41;
+    border-radius: 16px;
+    margin-bottom: 40px;
+  }
+
+  .time-saved-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 12px;
+  }
+
+  .time-saved-value {
+    font-size: 48px;
+    font-weight: 900;
+    color: #00FF41;
+    text-shadow: 0 0 30px rgba(0, 255, 65, 0.5);
+  }
+
+  .time-saved-percent {
+    font-size: 16px;
+    color: rgba(0, 255, 65, 0.9);
+    margin-top: 8px;
+    font-weight: 600;
+  }
+
+  .gear-breakdown {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    padding: 30px;
+  }
+
+  .gear-breakdown-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #00FF41;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .gear-breakdown-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .gear-breakdown-table th,
+  .gear-breakdown-table td {
+    padding: 14px 12px;
+    text-align: left;
+    border-bottom: 1px solid rgba(80, 80, 80, 0.3);
+  }
+
+  .gear-breakdown-table th {
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(180, 180, 180, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .gear-breakdown-table td {
+    font-size: 14px;
+    color: rgba(220, 220, 220, 0.9);
+    font-weight: 600;
+  }
+
+  .gear-breakdown-table .new-price {
+    color: #00FF41;
+    font-weight: 700;
+  }
+
+  .gear-breakdown-table .old-weeks {
+    color: rgba(255, 120, 120, 0.8);
+  }
+
+  .gear-breakdown-table .new-weeks {
+    color: #00FF41;
+    font-weight: 700;
+  }
+
+  .gear-breakdown-table .saved-weeks {
+    color: rgba(0, 255, 65, 0.8);
+    font-weight: 700;
+  }
+
+  /* What's Changed Tab */
+  .changes-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 40px;
+  }
+
+  .changes-icon {
+    font-size: 40px;
+  }
+
+  .changes-title {
+    font-size: 28px;
+    font-weight: 800;
+    color: #00FF41;
+  }
+
+  .key-changes-box {
+    background: rgba(0, 255, 65, 0.05);
+    border: 2px solid rgba(0, 255, 65, 0.3);
+    border-radius: 16px;
+    padding: 35px;
+    margin-bottom: 40px;
+  }
+
+  .key-changes-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #00FF41;
+    margin-bottom: 25px;
+  }
+
+  .changes-list {
+    list-style: none;
+  }
+
+  .changes-list li {
+    display: flex;
+    gap: 18px;
+    padding: 20px 0;
+    border-bottom: 1px solid rgba(80, 80, 80, 0.3);
+  }
+
+  .changes-list li:last-child {
+    border-bottom: none;
+  }
+
+  .change-icon {
+    font-size: 28px;
+    flex-shrink: 0;
+  }
+
+  .change-content {
+    flex: 1;
+  }
+
+  .change-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+
+  .change-detail {
+    font-size: 14px;
+    color: rgba(180, 180, 180, 0.8);
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+
+  .change-values {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+
+  .old-value {
+    padding: 6px 14px;
+    background: rgba(255, 68, 68, 0.15);
+    border: 1px solid rgba(255, 68, 68, 0.3);
+    border-radius: 6px;
+    color: rgba(255, 120, 120, 0.9);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: line-through;
+  }
+
+  .new-value {
+    padding: 6px 14px;
+    background: rgba(0, 255, 65, 0.15);
+    border: 1px solid rgba(0, 255, 65, 0.3);
+    border-radius: 6px;
+    color: #00FF41;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .arrow {
+    color: #00FF41;
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .formula-comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+    margin-bottom: 40px;
+  }
+
+  .formula-box {
+    padding: 30px;
+    border-radius: 14px;
+    position: relative;
+  }
+
+  .formula-box.old-formula {
+    background: rgba(255, 68, 68, 0.05);
+    border: 2px solid rgba(255, 68, 68, 0.25);
+  }
+
+  .formula-box.new-formula {
+    background: rgba(0, 255, 65, 0.05);
+    border: 2px solid rgba(0, 255, 65, 0.25);
+  }
+
+  .formula-box-badge {
+    position: absolute;
+    top: -12px;
+    left: 20px;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .old-formula .formula-box-badge {
+    background: rgba(255, 68, 68, 0.8);
+    color: #fff;
+  }
+
+  .new-formula .formula-box-badge {
+    background: #00FF41;
+    color: #000;
+  }
+
+  .formula-box-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    margin-top: 8px;
+  }
+
+  .old-formula .formula-box-title {
+    color: rgba(255, 150, 150, 0.9);
+  }
+
+  .new-formula .formula-box-title {
+    color: #00FF41;
+  }
+
+  .formula-block {
+    margin-bottom: 15px;
+  }
+
+  .formula-condition {
+    font-size: 11px;
+    color: rgba(180, 180, 180, 0.7);
+    margin-bottom: 6px;
+  }
+
+  .formula-code {
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 12px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    word-break: break-all;
+  }
+
+  .old-formula .formula-code {
+    background: rgba(255, 68, 68, 0.1);
+    color: rgba(255, 180, 180, 0.9);
+  }
+
+  .new-formula .formula-code {
+    background: rgba(0, 255, 65, 0.1);
+    color: rgba(150, 255, 180, 0.95);
+  }
+
+  .multiplier-note {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .old-formula .multiplier-note {
+    background: rgba(255, 68, 68, 0.08);
+    color: rgba(255, 150, 150, 0.85);
+  }
+
+  .new-formula .multiplier-note {
+    background: rgba(0, 255, 65, 0.08);
+    color: rgba(180, 255, 200, 0.9);
+  }
+
+  .example-calc {
+    background: rgba(0, 255, 65, 0.05);
+    border: 2px solid rgba(0, 255, 65, 0.3);
+    border-radius: 16px;
+    padding: 35px;
+    margin-bottom: 30px;
+  }
+
+  .example-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #00FF41;
+    text-align: center;
+    margin-bottom: 25px;
+  }
+
+  .example-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 25px;
+  }
+
+  .example-side {
+    text-align: center;
+    padding: 25px 35px;
+    border-radius: 12px;
+  }
+
+  .example-side.old {
+    background: rgba(255, 68, 68, 0.1);
+    border: 1px solid rgba(255, 68, 68, 0.3);
+  }
+
+  .example-side.new {
+    background: rgba(0, 255, 65, 0.1);
+    border: 1px solid rgba(0, 255, 65, 0.3);
+  }
+
+  .example-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+
+  .example-side.old .example-label {
+    color: rgba(255, 150, 150, 0.9);
+  }
+
+  .example-side.new .example-label {
+    color: #00FF41;
+  }
+
+  .example-value {
+    font-size: 42px;
+    font-weight: 900;
+  }
+
+  .example-side.old .example-value {
+    color: rgba(255, 120, 120, 0.9);
+  }
+
+  .example-side.new .example-value {
+    color: #00FF41;
+    text-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+  }
+
+  .example-subtitle {
+    font-size: 12px;
+    color: rgba(180, 180, 180, 0.7);
+    margin-top: 5px;
+  }
+
+  .example-arrow {
+    font-size: 36px;
+    color: #00FF41;
+  }
+
+  .example-gain {
+    text-align: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+  }
+
+  .gain-label {
+    font-size: 12px;
+    color: rgba(180, 180, 180, 0.8);
+    margin-bottom: 8px;
+  }
+
+  .gain-value {
+    font-size: 24px;
+    font-weight: 800;
+    color: #00FF41;
+  }
+
+  .data-source {
+    text-align: center;
+    padding: 25px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    border: 1px solid rgba(80, 80, 80, 0.3);
+  }
+
+  .data-source-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(180, 180, 180, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 12px;
+  }
+
+  .data-source-text {
+    font-size: 14px;
+    color: rgba(200, 200, 200, 0.9);
+    line-height: 1.6;
+  }
+
+  /* Gear Costs Tab */
+  .gear-section {
+    margin-bottom: 50px;
+  }
+
+  .gear-section:last-child {
+    margin-bottom: 0;
+  }
+
+  .gear-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 25px;
+  }
+
+  .gear-table th,
+  .gear-table td {
+    padding: 16px;
+    text-align: left;
+    border-bottom: 1px solid rgba(80, 80, 80, 0.3);
+  }
+
+  .gear-table th {
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(180, 180, 180, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .gear-table td {
+    font-size: 15px;
+    color: rgba(220, 220, 220, 0.9);
+    font-weight: 600;
+  }
+
+  .gear-table .old-price {
+    color: rgba(255, 120, 120, 0.7);
+    text-decoration: line-through;
+  }
+
+  .gear-table .new-price {
+    color: #00FF41;
+    font-weight: 700;
+  }
+
+  .gear-table .discount {
+    color: rgba(0, 255, 65, 0.8);
+    font-weight: 700;
+  }
+
+  .savings-summary {
+    text-align: center;
+    padding: 25px;
+    background: rgba(0, 255, 65, 0.08);
+    border: 2px solid rgba(0, 255, 65, 0.3);
+    border-radius: 12px;
+  }
+
+  .savings-summary-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(180, 180, 180, 0.8);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+
+  .savings-summary-value {
+    font-size: 28px;
+    font-weight: 800;
+    color: #00FF41;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .arena-calc-epic {
+      padding: 30px 15px;
+    }
+
+    .calc-card,
+    .weeks-card {
+      padding: 30px 20px;
+    }
+
+    .calc-title {
+      font-size: 24px;
+    }
+
+    .hype-stats {
+      grid-template-columns: 1fr;
+      gap: 15px;
+    }
+
+    .hype-stat-value {
+      font-size: 32px;
+    }
+
+    .bracket-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .bracket-btn {
+      padding: 20px;
+    }
+
+    .bracket-label {
+      font-size: 22px;
+    }
+
+    .input-section {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .result-value {
+      font-size: 36px;
+    }
+
+    .results-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .tab-nav {
+      gap: 8px;
+    }
+
+    .tab-btn {
+      padding: 12px 16px;
+      font-size: 10px;
+    }
+
+    .weeks-input-row {
+      grid-template-columns: 1fr;
+      gap: 15px;
+    }
+
+    .comparison-grid {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .comparison-arrow {
+      transform: rotate(90deg);
+    }
+
+    .comparison-weeks {
+      font-size: 42px;
+    }
+
+    .speed-hero-value {
+      font-size: 52px;
+    }
+
+    .formula-comparison {
+      grid-template-columns: 1fr;
+    }
+
+    .example-content {
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .example-arrow {
+      transform: rotate(90deg);
+    }
+
+    .example-value {
+      font-size: 32px;
+    }
+
+    .changes-list li {
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .change-values {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+  }
+</style>
+
+<div class="arena-calc-epic">
+  <div class="calc-container">
+    <div class="tbc-logo-section">
+      <img src="https://cdn.shopify.com/s/files/1/0964/2609/8968/files/emptybg-processed-tbc20thlogorraw-20251219T060547_1.png?v=1766431386" alt="TBC 20th Anniversary" class="tbc-logo">
+      <h1 class="calc-title">Arena Points Calculator</h1>
+      <p class="calc-subtitle">TBC 20th Anniversary Edition</p>
+    </div>
+
+    <div class="hype-banner">
+      <div class="hype-stats">
+        <div class="hype-stat">
+          <div class="hype-stat-value">+34%</div>
+          <div class="hype-stat-label">3v3/5v5 vs 2v2</div>
+        </div>
+        <div class="hype-stat">
+          <div class="hype-stat-value">-17%</div>
+          <div class="hype-stat-label">Gear Costs</div>
+        </div>
+        <div class="hype-stat">
+          <div class="hype-stat-value">~43%</div>
+          <div class="hype-stat-label">Faster (5pc Set)</div>
+        </div>
+      </div>
+      <div class="hype-tagline">Get your <span>5-piece set in ~57% of the time</span> compared to original TBC!</div>
+    </div>
+
+    <div class="updated-banner">
+      <span class="updated-badge">Updated</span>
+      <span class="updated-text">Formulas reverse-engineered from TBC Anniversary PTR - December 30, 2025</span>
+    </div>
+
+    <div class="ptr-warning">
+      ⚠️ Data from PTR testing. Values may change when TBC Anniversary goes live.
+    </div>
+
+    <div class="tab-nav">
+      <button class="tab-btn active" data-tab="calc">⚔️ Calculator</button>
+      <button class="tab-btn hot-tab" data-tab="weeks">📅 Weeks to Gear</button>
+      <button class="tab-btn new-tab" data-tab="changes">🔄 What's Changed</button>
+      <button class="tab-btn" data-tab="gear">🛡️ Gear Costs</button>
+    </div>
+
+    <!-- Calculator Tab -->
+    <div class="tab-content active" id="calc-tab">
+      <div class="calc-card">
+        <div class="section-header">Select Your Bracket</div>
+
+        <div class="bracket-grid">
+          <div class="bracket-btn" data-bracket="2v2">
+            <div class="bracket-label">2v2</div>
+            <div class="bracket-desc">Arena</div>
+            <div class="bracket-points-hint">Base formula</div>
+          </div>
+          <div class="bracket-btn" data-bracket="3v3">
+            <div class="bracket-label">3v3</div>
+            <div class="bracket-desc">Arena</div>
+            <div class="bracket-points-hint">+34% more points!</div>
+          </div>
+          <div class="bracket-btn" data-bracket="5v5">
+            <div class="bracket-label">5v5</div>
+            <div class="bracket-desc">Arena</div>
+            <div class="bracket-points-hint">+34% more points!</div>
+          </div>
+        </div>
+
+        <div class="section-header">Enter Your Details</div>
+
+        <div class="input-section">
+          <div class="input-group">
+            <label>Team Rating</label>
+            <input type="number" id="rating" placeholder="e.g. 1850" min="0" max="3000">
+          </div>
+          <div class="input-group">
+            <label>Current Arena Points</label>
+            <input type="number" id="currentPoints" placeholder="e.g. 500" min="0" max="5000">
+          </div>
+        </div>
+
+        <button class="calc-btn" onclick="calculatePoints()">Calculate Arena Points</button>
+
+        <div class="results-panel" id="results">
+          <div class="results-grid">
+            <div class="result-box">
+              <div class="result-label">Points Per Week</div>
+              <div class="result-value" id="pointsPerWeek">0</div>
+            </div>
+            <div class="result-box">
+              <div class="result-label">Points After Reset</div>
+              <div class="result-value" id="pointsAfterReset">0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Weeks to Gear Tab -->
+    <div class="tab-content" id="weeks-tab">
+      <div class="weeks-card">
+        <div class="speed-hero">
+          <div class="speed-hero-title">5-Piece Set Gearing Speed</div>
+          <div class="speed-hero-value">~43%</div>
+          <div class="speed-hero-subtitle">Faster Than Original</div>
+          <div class="speed-hero-desc">Get your 5pc set in ~57% of the time thanks to +45% points AND -17% costs</div>
+        </div>
+
+        <div class="weeks-input-row">
+          <div class="weeks-input-group">
+            <label>Your Rating</label>
+            <input type="number" id="weeksRating" placeholder="e.g. 1850" min="0" max="3000">
+          </div>
+          <div class="weeks-input-group">
+            <label>Your Bracket</label>
+            <select id="weeksBracket">
+              <option value="2v2">2v2 Arena</option>
+              <option value="3v3">3v3 Arena (+34% pts)</option>
+              <option value="5v5">5v5 Arena (+34% pts)</option>
+            </select>
+          </div>
+          <button class="weeks-calc-btn" onclick="calculateWeeksToGear()">Calculate</button>
+        </div>
+
+        <div class="weeks-results" id="weeksResults">
+          <div class="comparison-grid">
+            <div class="comparison-box old">
+              <div class="comparison-label">Original TBC</div>
+              <div class="comparison-weeks" id="oldSetWeeks">7.8</div>
+              <div class="comparison-subtext">weeks for 5pc</div>
+            </div>
+            <div class="comparison-arrow">→</div>
+            <div class="comparison-box new">
+              <div class="comparison-label">TBC Anniversary</div>
+              <div class="comparison-weeks" id="newSetWeeks">4.4</div>
+              <div class="comparison-subtext">weeks for 5pc</div>
+            </div>
+          </div>
+
+          <div class="time-saved-box">
+            <div class="time-saved-label">🔥 Time Saved on 5-Piece Armor Set</div>
+            <div class="time-saved-value" id="timeSavedValue">3.4 Weeks</div>
+            <div class="time-saved-percent" id="timeSavedPercent">You gear 43.6% faster!</div>
+          </div>
+
+          <div class="gear-breakdown">
+            <div class="gear-breakdown-title">⚔️ All Items (Pick What Your Class Needs)</div>
+            <table class="gear-breakdown-table">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>New Cost</th>
+                  <th>Old Time</th>
+                  <th>New Time</th>
+                  <th>Saved</th>
+                </tr>
+              </thead>
+              <tbody id="gearBreakdownBody"></tbody>
+            </table>
+          </div>
+
+          <div class="data-source" style="margin-top: 30px;">
+            <div class="data-source-title">Your Weekly Points</div>
+            <div class="data-source-text">
+              <strong>Old TBC:</strong> <span id="oldPointsDisplay">825</span> pts/week →
+              <strong>TBC Anniversary:</strong> <span id="newPointsDisplay">1,195</span> pts/week
+              <br><span style="color: #00FF41; font-weight: 700;">(+<span id="pointsGainDisplay">370</span> extra points per week!)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- What's Changed Tab -->
+    <div class="tab-content" id="changes-tab">
+      <div class="calc-card">
+        <div class="changes-header">
+          <span class="changes-icon">🔄</span>
+          <span class="changes-title">TBC Anniversary Changes</span>
+        </div>
+
+        <div class="key-changes-box">
+          <div class="key-changes-title">
+            <span>⚡</span>
+            Key Changes from Original TBC
+          </div>
+          <ul class="changes-list">
+            <li>
+              <div class="change-icon">🏆</div>
+              <div class="change-content">
+                <div class="change-title">3v3 & 5v5 Now Award 34% MORE Points Than 2v2</div>
+                <div class="change-detail">Team brackets (3v3/5v5) use a higher asymptote (2234) while 2v2 uses lower (1664). At the same rating, 3v3/5v5 give significantly more points!</div>
+                <div class="change-values">
+                  <span class="old-value">2v2: ~958 pts @ 1870</span>
+                  <span class="arrow">vs</span>
+                  <span class="new-value">3v3: 1287 pts @ 1870</span>
+                </div>
+              </div>
+            </li>
+            <li>
+              <div class="change-icon">📈</div>
+              <div class="change-content">
+                <div class="change-title">2v2 Still Gets +45% More Than Original TBC</div>
+                <div class="change-detail">Even though 2v2 has lower points than 3v3/5v5, it's still much better than original TBC (which had 0.76x penalty)</div>
+                <div class="change-values">
+                  <span class="old-value">825 pts @ 2024 (old)</span>
+                  <span class="arrow">→</span>
+                  <span class="new-value">1195 pts @ 2024 (new)</span>
+                </div>
+              </div>
+            </li>
+            <li>
+              <div class="change-icon">⚔️</div>
+              <div class="change-content">
+                <div class="change-title">Original Bracket Penalties REMOVED</div>
+                <div class="change-detail">Original TBC had 2v2 at 76% and 3v3 at 88% of 5v5. Now all brackets use their full formula with no percentage reduction.</div>
+                <div class="change-values">
+                  <span class="old-value">2v2: ×0.76 | 3v3: ×0.88</span>
+                  <span class="arrow">→</span>
+                  <span class="new-value">All brackets: ×1.0</span>
+                </div>
+              </div>
+            </li>
+            <li>
+              <div class="change-icon">🛡️</div>
+              <div class="change-content">
+                <div class="change-title">Gear Costs Reduced ~17%</div>
+                <div class="change-detail">All arena gear costs have been reduced by approximately 17%, making gearing faster</div>
+              </div>
+            </li>
+            <li>
+              <div class="change-icon">🚀</div>
+              <div class="change-content">
+                <div class="change-title">~43% Faster 5pc Set Gearing</div>
+                <div class="change-detail">Combined +45% points (2v2) and -17% costs means you get your 5-piece armor set in ~57% of the original time. Weapon/accessory times vary by class.</div>
+                <div class="change-values">
+                  <span class="old-value">7.8 weeks for 5pc</span>
+                  <span class="arrow">→</span>
+                  <span class="new-value">4.4 weeks for 5pc</span>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="formula-comparison">
+          <div class="formula-box old-formula">
+            <span class="formula-box-badge">Deprecated</span>
+            <div class="formula-box-title">Original TBC Formula</div>
+            <div class="formula-block">
+              <div class="formula-condition">If Rating ≥ 1500:</div>
+              <div class="formula-code">1511.26 / (1 + 1639.28 × e^(-0.00412 × R))</div>
+            </div>
+            <div class="formula-block">
+              <div class="formula-condition">If Rating < 1500:</div>
+              <div class="formula-code">0.22 × R + 14</div>
+            </div>
+            <div class="multiplier-note">
+              <strong>Bracket Multipliers:</strong><br>
+              2v2: ×0.76 | 3v3: ×0.88 | 5v5: ×1.0
+            </div>
+          </div>
+
+          <div class="formula-box new-formula">
+            <span class="formula-box-badge">PTR Active</span>
+            <div class="formula-box-title">TBC Anniversary Formula</div>
+            <div class="formula-block">
+              <div class="formula-condition">2v2 (Rating ≥ 1500):</div>
+              <div class="formula-code">1664 / (1 + 1639.28 × e^(-0.00412 × R))</div>
+            </div>
+            <div class="formula-block">
+              <div class="formula-condition">3v3 & 5v5 (Rating ≥ 1500):</div>
+              <div class="formula-code">2234 / (1 + 1639.28 × e^(-0.00412 × R))</div>
+            </div>
+            <div class="multiplier-note">
+              <strong>No Bracket Multipliers!</strong><br>
+              2v2: Asymptote 1664<br>
+              3v3/5v5: Asymptote 2234 (+34%)
+            </div>
+          </div>
+        </div>
+
+        <div class="example-calc">
+          <div class="example-title">📊 Real Example: 1870 Rating Comparison</div>
+          <div class="example-content">
+            <div class="example-side old">
+              <div class="example-label">2v2 @ 1870</div>
+              <div class="example-value">~958</div>
+              <div class="example-subtitle">points/week</div>
+            </div>
+            <div class="example-arrow">→</div>
+            <div class="example-side new">
+              <div class="example-label">3v3 @ 1870</div>
+              <div class="example-value">1287</div>
+              <div class="example-subtitle">points/week</div>
+            </div>
+          </div>
+          <div class="example-gain">
+            <div class="gain-label">3v3/5v5 Advantage Over 2v2</div>
+            <div class="gain-value">+329 (+34%)</div>
+          </div>
+        </div>
+
+        <div class="data-source">
+          <div class="data-source-title">Data Sources</div>
+          <div class="data-source-text">
+            <strong>2v2 Test:</strong> 2024 rating awarded <strong>1195 points</strong> (Dec 30, 2025 PTR)<br>
+            <strong>3v3 Test:</strong> 1870 rating awarded <strong>1287 points</strong> (Dec 30, 2025 PTR)
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gear Costs Tab -->
+    <div class="tab-content" id="gear-tab">
+      <div class="calc-card">
+        <div class="gear-section">
+          <h3 class="section-header">🛡️ PvP Tier Gear</h3>
+          <table class="gear-table">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Old Cost</th>
+                <th>New Cost</th>
+                <th>Savings</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Chest</td><td class="old-price">1,875</td><td class="new-price">1,550</td><td class="discount">-325 (-17.33%)</td></tr>
+              <tr><td>Hands</td><td class="old-price">1,125</td><td class="new-price">930</td><td class="discount">-195 (-17.33%)</td></tr>
+              <tr><td>Legs</td><td class="old-price">1,875</td><td class="new-price">1,550</td><td class="discount">-325 (-17.33%)</td></tr>
+              <tr><td>Shoulder</td><td class="old-price">1,500</td><td class="new-price">1,245</td><td class="discount">-255 (-17.00%)</td></tr>
+              <tr><td>Head</td><td class="old-price">1,875</td><td class="new-price">1,550</td><td class="discount">-325 (-17.33%)</td></tr>
+            </tbody>
+          </table>
+          <div class="savings-summary">
+            <div class="savings-summary-title">Total 5-Piece Set Savings</div>
+            <div class="savings-summary-value">1,425 Arena Points (~17%)</div>
+          </div>
+        </div>
+
+        <div class="gear-section">
+          <h3 class="section-header">⚔️ Weapons</h3>
+          <table class="gear-table">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Old Cost</th>
+                <th>New Cost</th>
+                <th>Savings</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Bow</td><td class="old-price">3,750</td><td class="new-price">3,110</td><td class="discount">-640 (-17.07%)</td></tr>
+              <tr><td>Main-Hand (Spellpower)</td><td class="old-price">3,150</td><td class="new-price">2,610</td><td class="discount">-540 (-17.14%)</td></tr>
+              <tr><td>Main-Hand (Melee)</td><td class="old-price">2,625</td><td class="new-price">2,175</td><td class="discount">-450 (-17.14%)</td></tr>
+              <tr><td>Off-Hand</td><td class="old-price">1,125</td><td class="new-price">930</td><td class="discount">-195 (-17.33%)</td></tr>
+              <tr><td>Relics</td><td class="old-price">1,000</td><td class="new-price">830</td><td class="discount">-170 (-17.00%)</td></tr>
+              <tr><td>Shield</td><td class="old-price">1,875</td><td class="new-price">1,550</td><td class="discount">-325 (-17.33%)</td></tr>
+              <tr><td>Thrown</td><td class="old-price">1,000</td><td class="new-price">830</td><td class="discount">-170 (-17.00%)</td></tr>
+              <tr><td>Two-Hand</td><td class="old-price">3,750</td><td class="new-price">3,110</td><td class="discount">-640 (-17.07%)</td></tr>
+              <tr><td>Wand</td><td class="old-price">1,000</td><td class="new-price">830</td><td class="discount">-170 (-17.00%)</td></tr>
+            </tbody>
+          </table>
+          <div class="savings-summary">
+            <div class="savings-summary-title">All weapons reduced by</div>
+            <div class="savings-summary-value">~17% Arena Points</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  var selectedBracket = null;
+
+  var GEAR_DATA = {
+    '5pc Set': { oldCost: 8250, newCost: 6825 },
+    'Two-Hand Weapon': { oldCost: 3750, newCost: 3110 },
+    'Bow/Gun': { oldCost: 3750, newCost: 3110 },
+    'MH + OH (Caster)': { oldCost: 4275, newCost: 3540 },
+    'MH + OH (Melee)': { oldCost: 3750, newCost: 3105 },
+    'Shield': { oldCost: 1875, newCost: 1550 },
+    'Chest': { oldCost: 1875, newCost: 1550 },
+    'Head': { oldCost: 1875, newCost: 1550 },
+    'Legs': { oldCost: 1875, newCost: 1550 },
+    'Shoulders': { oldCost: 1500, newCost: 1245 },
+    'Gloves': { oldCost: 1125, newCost: 930 }
+  };
+
+  // OLD TBC: Different multipliers on same base formula
+  var OLD_BRACKET_MULT = { '2v2': 0.76, '3v3': 0.88, '5v5': 1.0 };
+  var OLD_ASYMPTOTE = 1511.26;
+
+  // NEW TBC ANNIVERSARY: Different asymptotes per bracket (no multipliers)
+  var NEW_ASYMPTOTE = { '2v2': 1664, '3v3': 2234, '5v5': 2234 };
+
+  function calcOld(rating, bracket) {
+    var pts;
+    if (rating >= 1500) {
+      pts = OLD_ASYMPTOTE / (1 + 1639.28 * Math.exp(-0.00412 * rating));
+    } else {
+      pts = 0.22 * rating + 14;
+    }
+    return Math.floor(Math.max(0, Math.min(pts * OLD_BRACKET_MULT[bracket], 5000)));
+  }
+
+  function calcNew(rating, bracket) {
+    var asymptote = NEW_ASYMPTOTE[bracket];
+    var pts;
+    if (rating >= 1500) {
+      pts = asymptote / (1 + 1639.28 * Math.exp(-0.00412 * rating));
+    } else {
+      // Low rating formula scales proportionally
+      var lowBase = (bracket === '2v2') ? 0.24 : 0.32;
+      var lowAdd = (bracket === '2v2') ? 15 : 20;
+      pts = lowBase * rating + lowAdd;
+    }
+    return Math.floor(Math.max(0, Math.min(pts, 5000)));
+  }
+
+  document.querySelectorAll('.tab-btn').forEach(function(btn) {
+    btn.onclick = function() {
+      var tab = this.getAttribute('data-tab');
+      document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+      this.classList.add('active');
+      document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+      document.getElementById(tab + '-tab').classList.add('active');
+    };
+  });
+
+  document.querySelectorAll('.bracket-btn').forEach(function(btn) {
+    btn.onclick = function() {
+      document.querySelectorAll('.bracket-btn').forEach(function(b) { b.classList.remove('selected'); });
+      this.classList.add('selected');
+      selectedBracket = this.getAttribute('data-bracket');
+    };
+  });
+
+  window.calculatePoints = function() {
+    if (!selectedBracket) { alert('Please select a bracket first!'); return; }
+    var rating = parseInt(document.getElementById('rating').value) || 0;
+    var current = parseInt(document.getElementById('currentPoints').value) || 0;
+    if (rating < 0 || rating > 3000) { alert('Rating must be between 0 and 3000'); return; }
+    var pts = calcNew(rating, selectedBracket);
+    document.getElementById('pointsPerWeek').textContent = pts;
+    document.getElementById('pointsAfterReset').textContent = current + pts;
+    document.getElementById('results').classList.add('show');
+  };
+
+  window.calculateWeeksToGear = function() {
+    var rating = parseInt(document.getElementById('weeksRating').value) || 0;
+    var bracket = document.getElementById('weeksBracket').value;
+    if (rating < 0 || rating > 3000) { alert('Rating must be between 0 and 3000'); return; }
+
+    var oldPts = calcOld(rating, bracket);
+    var newPts = calcNew(rating, bracket);
+
+    document.getElementById('oldPointsDisplay').textContent = oldPts.toLocaleString();
+    document.getElementById('newPointsDisplay').textContent = newPts.toLocaleString();
+    document.getElementById('pointsGainDisplay').textContent = (newPts - oldPts).toLocaleString();
+
+    var oldWks = (GEAR_DATA['5pc Set'].oldCost / oldPts).toFixed(1);
+    var newWks = (GEAR_DATA['5pc Set'].newCost / newPts).toFixed(1);
+    var saved = (oldWks - newWks).toFixed(1);
+    var pct = (((oldWks - newWks) / oldWks) * 100).toFixed(1);
+
+    document.getElementById('oldSetWeeks').textContent = oldWks;
+    document.getElementById('newSetWeeks').textContent = newWks;
+    document.getElementById('timeSavedValue').textContent = saved + ' Weeks';
+    document.getElementById('timeSavedPercent').textContent = 'You gear ' + pct + '% faster!';
+
+    var tbody = document.getElementById('gearBreakdownBody');
+    tbody.innerHTML = '';
+    for (var item in GEAR_DATA) {
+      var c = GEAR_DATA[item];
+      var ow = (c.oldCost / oldPts).toFixed(1);
+      var nw = (c.newCost / newPts).toFixed(1);
+      var sv = (ow - nw).toFixed(1);
+      tbody.innerHTML += '<tr><td>' + item + '</td><td class="new-price">' + c.newCost.toLocaleString() + '</td><td class="old-weeks">' + ow + ' wks</td><td class="new-weeks">' + nw + ' wks</td><td class="saved-weeks">-' + sv + ' wks</td></tr>';
+    }
+
+    document.getElementById('weeksResults').classList.add('show');
+  };
+})();
+</script>
